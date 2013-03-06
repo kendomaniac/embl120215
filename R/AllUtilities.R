@@ -1,0 +1,105 @@
+
+###
+filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic"),query){
+       if(type=="fusion.names"){
+	       if(!is.character(query)){
+		        cat("\nfiltering by fusion names needs to pass to the method vector of character names\n")
+		        return()
+		   }
+	       tmp <- fusionName(x)
+	       loc <- which(tmp %in% query)
+       }
+       if(type=="supporting.reads"){
+	       if(!is.numeric(query)){
+		        cat("\nfiltering by supporting reads needs to pass to the method a numerical reads threshold\n")
+		        return()
+		   }
+	       tmp <- supportingReads(x)
+	       loc <- which(tmp >= query)
+       }
+       if(type=="intronic"){
+	      cat("\n")
+          tmp <- sapply(x,.detectIntronic)
+          loc <- which(tmp == 0)
+       }
+       filtered <- x[loc]
+       return(filtered)
+}
+###
+
+
+.detectIntronic <- function(fset){
+  cat(".")
+  grl <- fusionGRL(fset)
+  #defining the junction as a point object 
+  #donor.end
+ # start(grl[[1]]) <- end(grl[[1]])
+  #acceptor.start
+#  end(grl[[2]]) <- start(grl[[2]])
+  g1.name <- elementMetadata(grl[[1]])$KnownGene
+  g2.name <- elementMetadata(grl[[2]])$KnownGene
+  chimera <- paste(g1.name, g2.name, sep=":")
+  chr.sym <- as.list(org.Hs.egSYMBOL)
+  chimera.tmp <- strsplit(chimera,":")
+  if(length(chimera.tmp[[1]]) > 2){return(1)}
+  g1 <- chimera.tmp[[1]][1]
+  eg1 <- names(chr.sym[which(chr.sym == g1)])
+  g2 <- chimera.tmp[[1]][2]
+  eg2 <- names(chr.sym[which(chr.sym == g2)])	 
+  eg.lst <- list(gene_id=eg1)
+  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
+  if(length(eg.trs.n)==0){return(1)}
+  #getting only the trs encompassing fusion position
+  fusion.trs <- findOverlaps(grl[[1]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
+  if(is.na(fusion.trs)){return(1)}
+  eg.trs.n <- eg.trs.n[fusion.trs]
+  tmp.tx <- as.character(elementMetadata(eg.trs.n)$tx_id)
+  tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
+  tmp.gene1 <- NULL
+  for(i in 1:length(tmp.tx)){
+		tmp.seq <- .buildFusion(type="donor.end", grl, tmp.tx[i])
+        tmp.gene1 <- c(tmp.gene1, tmp.seq$seq)
+        if(!is.na(tmp.seq$intron.location)){
+	           return(1)
+        }
+  }
+  names(tmp.gene1) <- tmp.name
+  #
+  eg.lst <- list(gene_id=eg2)
+  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
+  if(length(eg.trs.n)==0){return(1)}
+  fusion.trs <- findOverlaps(grl[[2]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
+  if(is.na(fusion.trs)){return(1)}
+  eg.trs.n <- eg.trs.n[fusion.trs]
+  tmp.tx <- as.character(elementMetadata(eg.trs.n)$tx_id)
+  tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
+  tmp.gene2 <- NULL
+  for(i in 1:length(tmp.tx)){
+		  tmp.seq <- .buildFusion(type="acceptor.start", grl, tmp.tx[i])
+          tmp.gene2 <- c(tmp.gene2, tmp.seq$seq)
+          if(!is.na(tmp.seq$intron.location)){
+	           return(1)
+        }
+  }
+  return(0)
+}
+
+
+
+
+
+supportingReads <- function(list){
+	tmp <- list
+	nsr <- sapply(tmp, function(x) x@fusionInfo$SeedCount)
+	nsr <- as.numeric(nsr)
+}
+###
+fusionName <- function(list){ 
+	tmp <- list
+	g1 <- sapply(tmp, function(x) x@fusionLoc[[1]]@elementMetadata$KnownGene)
+	g2 <- sapply(tmp, function(x) x@fusionLoc[[2]]@elementMetadata$KnownGene)
+	g1g2 <- paste(g1,g2, sep=":")
+	return(g1g2)
+}
+
+

@@ -1,0 +1,2 @@
+02-12-2012
+Supporting FusionMap, FusionHunter, deFuse, Bellerophontes, MapSplice, FusionFinder, TopHat-fusion outputs.
