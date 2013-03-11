@@ -177,21 +177,24 @@ tophatInstallation <- function(binDir, os=c("unix","mac")){
 
 tophatRun <- function(input1, input2, output,cores=1, bowtie= "bowtie", tophat= "tophat",ebwt=paste(getwd(),"mychimera.fa",sep="/"), alignment=c("se","pe"))
 {
-           check.tophat <- try(system("tophat 2>&1", intern=T, ignore.stderr=T))
-           if(length(grep("Error",check.tophat[[1]])) > 0){
+           check.tophat <- system("tophat 2>&1", intern=T)
+#           if(length(grep("Error",check.tophat[[1]])) > 0){
+	        if(length(as.character(check.tophat)) == 0){
 	            cat("\nIt seems that TopHat is not installed in your system:\n")
 	            cat("please install it using the function: tophatInstallation\nAfter running tophatInstallation. Close R and the shell\n")
 	            return()
            }
            check.samtools <- system("samtools 2>&1", intern=T)
-		   if(length(grep("samtools", check.samtools[2])) == 0){
+#		   if(length(grep("samtools", check.samtools[2])) == 0){
+	        if(length(as.character(check.samtools)) == 0){
 	            cat("\nIt seems that samtools is not installed in your system:\n")
 	            cat("please install it using the function: tophatInstallation")
 	            return()
            }
            #building bowtie db
            check.bowtie <- system("bowtie 2>&1", intern=T)
-		   if(length(grep("bowtie", check.bowtie[3])) == 0){
+#		   if(length(grep("bowtie", check.bowtie[3])) == 0){
+	       if(length(as.character(check.bowtie)) == 0){
 	            cat("\nIt seems that bowtie is not installed in your system:\n")
 	            cat("please install it using the function: tophatInstallation")
 	            return()
