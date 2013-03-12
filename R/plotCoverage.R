@@ -82,7 +82,7 @@ plotCoverage <- function(fset, plot.type=c("exons","junctions"), junction.spanni
   tr2 <- eg.trs.e
   start(tr2[acceptor.exon]) <- start(grl[[2]])
   if(unique(as.character(strand(tr2))) == "-"){
-	  #Importante da ricontrollare
+	  #right!
        tr2 <- tr2[1:acceptor.exon]
   }else{
 	   tr2 <- tr2[acceptor.exon:length(tr2)]
@@ -104,31 +104,45 @@ plotCoverage <- function(fset, plot.type=c("exons","junctions"), junction.spanni
   #qualcosa che non mi torna controllare
   myranges2 <- c((myranges1[length(myranges1)] +1), (myranges1[length(myranges1)] + myranges2))
 #coverage
-        start.j1 <- NULL
-	    end.j1 <- NULL
-        all.coverage <- new("Rle",values=0, lengths=length(ga.x))
-        start <- 1
-		end <- length(ga.x)
-	    for(i in 2:(length(myranges1)-1)){
+           start.j1 <- NULL
+	       end.j1 <- NULL
+           all.coverage <- new("Rle",values=0, lengths=length(ga.x))
+           start <- 1
+		   end <- length(ga.x)
+		   if(length(myranges1) > 2){
+	          for(i in 2:(length(myranges1)-1)){
+	             start.j1 <- myranges1[i] - junction.spanning
+	             end.j1 <- myranges1[i] + junction.spanning
+	             all.coverage[start.j1:end.j1] <- ga.x[start.j1:end.j1]
+	         }
+           }else{
+	           i <- 2 
 	           start.j1 <- myranges1[i] - junction.spanning
 	           end.j1 <- myranges1[i] + junction.spanning
 	           all.coverage[start.j1:end.j1] <- ga.x[start.j1:end.j1]
-	    }
-	    if(fusion.only){
+            }
+	        if(fusion.only){
 		       fusion.coverage <- new("Rle",values=0, lengths=length(ga.x))
 		       start.f <- myranges1[length(myranges1)] - junction.spanning
 		       end.f <- myranges1[length(myranges1)] + junction.spanning
 	           fusion.coverage[start.f:end.f] <- ga.x[start.f:end.f]
-	    }
+	        }
 		    start.f <- myranges1[length(myranges1)] - junction.spanning
 		    end.f <- myranges1[length(myranges1)] + junction.spanning
 	        all.coverage[start.f:end.f] <- ga.x[start.f:end.f]
 	  	    start.j2 <- NULL
 		    end.j2 <- NULL
-	        for(i in 2:(length(myranges2)-1)){
-	           start.j2 <- myranges2[i] - junction.spanning
-	           end.j2 <- myranges2[i] + junction.spanning
-		       all.coverage[start.j2:end.j2] <- ga.x[start.j2:end.j2]
+		    if(length(myranges2) > 2){
+	          for(i in 2:(length(myranges2)-1)){
+	             start.j2 <- myranges2[i] - junction.spanning
+	             end.j2 <- myranges2[i] + junction.spanning
+		         all.coverage[start.j2:end.j2] <- ga.x[start.j2:end.j2]
+	          }
+	        }else{
+		         i <- 2
+	             start.j2 <- myranges2[i] - junction.spanning
+	             end.j2 <- myranges2[i] + junction.spanning
+		         all.coverage[start.j2:end.j2] <- ga.x[start.j2:end.j2]	
 	        }
 	        if(fusion.only){
 		            xWindow <- as(window(fusion.coverage, start.f, end.f), "vector")

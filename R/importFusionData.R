@@ -1147,7 +1147,7 @@ importFusionData <- function(format, filename, ...)
         if(!is.na(fusion.pos)){
           start(eg.trs.e[fusion.pos]) <- start(fusion.grl[[2]])
           if(unique(as.character(strand(eg.trs.e))) == "-"){
-             eg.trs.e <- eg.trs.e[fusion.pos:length(eg.trs.e)]
+             eg.trs.e <- eg.trs.e[1:fusion.pos]
              eg.trs.seq <- getSeq(Hsapiens, eg.trs.e)
              eg.trs.rnk <- seq(1,length(eg.trs.seq))
              eg.trs.rnk <- order(eg.trs.rnk,decreasing=T)
@@ -1186,7 +1186,7 @@ importFusionData <- function(format, filename, ...)
             end(eg.trs.e[my.intron]) <- end(eg.trs.i[my.intron])
             start(eg.trs.e[my.intron]) <- start(fusion.grl[[2]])
             if(unique(as.character(strand(eg.trs.e))) == "-"){
-               #importante controllare!!!
+               #right!
                eg.trs.e <- eg.trs.e[1:fusion.pos]
                eg.trs.seq <- getSeq(Hsapiens, eg.trs.e)
                eg.trs.rnk <- seq(1,length(eg.trs.seq))

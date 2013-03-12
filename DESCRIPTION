@@ -1,8 +1,8 @@
 Package: chimera
 Type: Package
 Title: A package for secondary analysis of fusion products
-Version: 1.0.2
-Date: 2013-03-09
+Version: 1.0.3
+Date: 2013-03-12
 Author: Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero 
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
 Depends:  Biobase, GenomicRanges, Rsamtools, methods, org.Hs.eg.db, org.Mm.eg.db, AnnotationDbi, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene 
