@@ -24,7 +24,7 @@ importFusionData <- function(format, filename, ...)
            "fusionhunter" = .fhImport(filename),
 	       "mapsplice" = .msImport(filename),
 	       "tophat-fusion" = .thfImport(filename),
-	       "chimerascan" = .csImport(filename),
+	       "chimerascan" = .csImport(filename, ...),
            "fusionmap" = .fmImport(filename, ...)
     )
 }
@@ -966,9 +966,10 @@ importFusionData <- function(format, filename, ...)
 			   return(fusionList)
 }
 #ChimeraScann import
-.csImport <- function(fusion.report){
+.csImport <- function(fusion.report, min.support=0){
 	    report <- read.table(fusion.report, sep="\t", header=F)
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
+		report <- report[which(report$spanning_frags > min.support),]
 		fusionreads.loc <- new("GappedAlignments")
 	    #loading annotation
 		chr.tmps <- as.list(org.Hs.egCHRLOC)
