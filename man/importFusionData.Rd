@@ -14,7 +14,7 @@
 \examples{
     tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
     #min.support allow to retrieve only the subset of fusions supported by a user defined minimal number of junction spanning reads
-    #tmp <- importFusionData("chimerascan", "edgren_cs10.bedpe", min.support=10)
+    #tmp <- importFusionData("chimerascan", "edgren_cs10.bedpe", min.support=10, org="hs")
 }
 \keyword{utilities}
 

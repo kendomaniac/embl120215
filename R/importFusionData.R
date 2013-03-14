@@ -966,11 +966,12 @@ importFusionData <- function(format, filename, ...)
 			   return(fusionList)
 }
 #ChimeraScann import
-.csImport <- function(fusion.report, min.support=0){
+.csImport <- function(fusion.report, min.support=0, org=c("hs","mm")){
 	    report <- read.table(fusion.report, sep="\t", header=F)
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
 		report <- report[which(report$spanning_frags > min.support),]
 		fusionreads.loc <- new("GappedAlignments")
+	if(org=="hs"){
 	    #loading annotation
 		chr.tmps <- as.list(org.Hs.egCHRLOC)
 		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
@@ -993,6 +994,30 @@ importFusionData <- function(format, filename, ...)
 		mychrs <- unique(as.character(seqnames(grHs)))
 		mychrs <- mychrs[1:24]
 		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
+	}else if(org=="mm"){
+		chr.tmps <- as.list(org.Mm.egCHRLOC)
+		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
+		eg.start <- names(chr.tmps)
+		chr.start <- sapply(chr.tmps, function(x)x[1])
+		chr.strand <- rep("+", length(chr.start))
+		chr.strand[which(chr.start < 0)] <- "-"
+		chr.start <- abs(chr.start)
+		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
+		chr <- paste("chr", chr.tmpc, sep="")
+		chr.tmpe <- as.list(org.Mm.egCHRLOCEND)
+		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
+		eg.end <- names(chr.tmpe)
+		chr.end <- sapply(chr.tmpe, function(x)x[1])
+		chr.end <- abs(chr.end)
+		chr.sym <- as.list(org.Mm.egSYMBOL)
+		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
+		#identical(names(chr.sym),eg.start)
+		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
+		mychrs <- unique(as.character(seqnames(grHs)))
+		mychrs <- mychrs[1:20]
+		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
+		
+	}	
 #
 	    fusionList <- list()
 	    for(i in 1:dim(report)[1]){
