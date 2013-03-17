@@ -1,11 +1,12 @@
 Package: chimera
 Type: Package
 Title: A package for secondary analysis of fusion products
-Version: 1.0.4
-Date: 2013-03-13
+Version: 1.0.6
+Date: 2013-03-17
 Author: Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero 
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
-Depends:  Biobase, GenomicRanges, Rsamtools, methods, org.Hs.eg.db, org.Mm.eg.db, AnnotationDbi, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene 
+Depends:  Biobase, GenomicRanges, Rsamtools, methods, org.Hs.eg.db, org.Mm.eg.db, AnnotationDbi, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene
+Suggests: BSgenome.Mmusculus.UCSC.mm9, TxDb.Mmusculus.UCSC.mm9.knownGene 
 Description: This package facilitates the characterisation of fusion products events. It allows to import fusion data results from the following fusion finders:  bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap
 biocViews: Infrastructure
 SystemRequirements: TopHat, bowtie and samtools are required for some functionalities 

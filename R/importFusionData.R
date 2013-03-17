@@ -969,7 +969,7 @@ importFusionData <- function(format, filename, ...)
 .csImport <- function(fusion.report, min.support=0, org=c("hs","mm")){
 	    report <- read.table(fusion.report, sep="\t", header=F)
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
-		report <- report[which(report$spanning_frags > min.support),]
+		report <- report[which(as.numeric(report$spanning_frags) > min.support),]
 		fusionreads.loc <- new("GappedAlignments")
 	if(org=="hs"){
 	    #loading annotation
@@ -1024,8 +1024,8 @@ importFusionData <- function(format, filename, ...)
 		 strand1 <- as.character(report$strand5p[i])
 		 strand2 <- as.character(report$strand3p[i])
 		 #detecting genes involved in fusions		
-         grG1 <-  GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = (report$end5p[i] - 30), end= report$end5p[i]), strand = strand1)
-         grG2 <-  GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = report$start3p[i], end= (report$start3p[i] + 30)), strand = strand2)
+         grG1 <-  GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = (as.numeric(report$end5p[i]) - 30), end= as.numeric(report$end5p[i])), strand = strand1)
+         grG2 <-  GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = as.numeric(report$start3p[i]), end= (as.numeric(report$start3p[i]) + 30)), strand = strand2)
          tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
          if(!is.na(tmpG1)){
              g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
@@ -1034,10 +1034,14 @@ importFusionData <- function(format, filename, ...)
          if(!is.na(tmpG2)){
              g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
          }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
-         
-		 fs.1 <- as.character(getSeq(Hsapiens, grG1))
-		 fs.2 <- as.character(getSeq(Hsapiens, grG2))		
-
+         if(org=="hs"){
+		     fs.1 <- as.character(getSeq(Hsapiens, grG1))
+		     fs.2 <- as.character(getSeq(Hsapiens, grG2))		
+         }else if(org=="mm"){
+	         require(BSgenome.Mmusculus.UCSC.mm9) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
+		     fs.1 <- as.character(getSeq(Mmusculus, grG1))
+		     fs.2 <- as.character(getSeq(Mmusculus, grG2))			
+         }
 		 if(length(as.character(report$transcript_ids_5p[i])) == 0){
 			tmpT1 <- NULL
 		 } else{
@@ -1055,14 +1059,14 @@ importFusionData <- function(format, filename, ...)
 			tmpTs1 <- ""
 			tmpTs2 <- ""
 
-	     gr1 <- GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = (report$end5p[i] - 30), end= report$end5p[i]),
+	     gr1 <- GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = (as.numeric(report$end5p[i]) - 30), end= as.numeric(report$end5p[i])),
 		            strand = strand1,
 		            KnownGene = as.character(g1),
 		            KnownTranscript =  tmpT1,
 		            KnownExonNumber = tmpEn1,
 		            KnownTranscriptStrand = tmpTs1,
 		            FusionJunctionSequence =  fs.1)
-	     gr2 <- GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = report$start3p[i], end= (report$start3p[i] + 30)),
+	     gr2 <- GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = as.numeric(report$start3p[i]), end= (as.numeric(report$start3p[i]) + 30)),
 				   strand = strand2,
 				   KnownGene = as.character(g2),
 				   KnownTranscript =  tmpT2,
