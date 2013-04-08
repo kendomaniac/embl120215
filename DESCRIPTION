@@ -1,13 +1,13 @@
 Package: chimera
 Type: Package
 Title: A package for secondary analysis of fusion products
-Version: 1.3.0
-Date: 2013-03-17
+Version: 1.3.1
+Date: 2013-04-07
 Author: Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero 
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
 Depends:  Biobase, GenomicRanges, Rsamtools, methods, org.Hs.eg.db, org.Mm.eg.db, AnnotationDbi, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene
-Suggests: BSgenome.Mmusculus.UCSC.mm9, TxDb.Mmusculus.UCSC.mm9.knownGene 
-Description: This package facilitates the characterisation of fusion products events. It allows to import fusion data results from the following fusion finders:  bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap
+Suggests: BSgenome.Mmusculus.UCSC.mm9, TxDb.Mmusculus.UCSC.mm9.knownGene, BiocParallel 
+Description: This package facilitates the characterisation of fusion products events. It allows to import fusion data results from the following fusion finders:  bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap, STAR.
 biocViews: Infrastructure
-SystemRequirements: TopHat, bowtie and samtools are required for some functionalities 
+SystemRequirements: STAR, TopHat, bowtie and samtools are required for some functionalities 
 License: Artistic-2.0

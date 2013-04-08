@@ -6,6 +6,8 @@
 #.msImport import fusions from MapSplice
 #.thfImport import fusions from TopHat-fusion
 #.dfImport import fusions from deFuse
+#.starImport import fusions from star
+#.starFset creat fset from star data
 #.chimeraSeqs generates the fusion nucleotide sequence
 #tophatInstallation
 #tophatRun
@@ -25,7 +27,8 @@ importFusionData <- function(format, filename, ...)
 	       "mapsplice" = .msImport(filename),
 	       "tophat-fusion" = .thfImport(filename),
 	       "chimerascan" = .csImport(filename, ...),
-           "fusionmap" = .fmImport(filename, ...)
+           "fusionmap" = .fmImport(filename, ...),
+           "star" = .starImport(filename, ...)
     )
 }
 #functions
@@ -1241,5 +1244,163 @@ importFusionData <- function(format, filename, ...)
         return(list(seq=accept.seq, intron.location=acceptor.intron))
     }
 }
+#############
+.starImport <- function(fusion.report, org=c("hs","mm"), parallel=F, hist.file=NULL, min.support=10){
+	        require(BiocParallel) || stop("\nMission BiocParallel library\n")
+	        if(parallel){ 
+	             p <- MulticoreParam()
+	        }
+		    report <- read.table(fusion.report, sep="\t", header=F)
+		    names(report) <- c("gene1.chr","gene1.start", "gene1.strand", "gene2.chr","gene2.start", "gene2.strand","junction.type","repeat.left","repeat.right","reads.name","first.aligned.read1","read1.cigar","first.aligned.read2","read2.cigar")
+            tmp.loc1 <- paste(as.character(report[,1]),report[,2],as.character(report[,3]), sep=":")
+            tmp.loc2 <- paste(as.character(report[,4]),report[,5],as.character(report[,6]), sep=":")
+            tmp.loc <- paste(tmp.loc1, tmp.loc2, sep="|")
+            tmp.loc1 <- NULL
+            tmp.loc2 <- NULL
+            #parallelizzare
+#            ptm <- proc.time()
+#            tmp1 <- bpvec(tmp.loc, function(x) gsub(" ","",x), BPPARAM=p)
+#            proc.time() - ptm
+		    
+            # the function discard fusions supported by a single read
+            tmp.loc1 <- tmp.loc[duplicated(tmp.loc)]
+            tmp.loc.u <- unique(tmp.loc1)
+            if(parallel){
+	             tmp.loc.counts <- bplapply(tmp.loc.u, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
+	             tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
+	        }else{ 
+                 tmp.loc.counts <- lapply(tmp.loc.u,function(x,y) length(which(y==x)), y=tmp.loc1)
+                 tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
+            }
+            #at this point I have the supporting number of reads for fusions supported by more than one read
+            if(length(hist.file)>0){
+	               pdf("hist")
+	               hist(log10(tmp.loc.counts), xlab="log10 reads supporting fusions")
+	               abline(v=log10(min.support), col="red")
+	               dev.off()
+	               cat(paste("\nDistribution of fusions is saved in ",hist,"\n", sep=""))
+            }
+            names(tmp.loc.counts) <- tmp.loc.u
+            tmp.loc.counts <- tmp.loc.counts[which(tmp.loc.counts >= min.support)]
+			fusionreads.loc <- new("GappedAlignments")
+		    #loading annotation
+		if(org=="hs"){
+			chr.tmps <- as.list(org.Hs.egCHRLOC)
+			chr.tmps <- chr.tmps[!is.na(chr.tmps)]
+			eg.start <- names(chr.tmps)
+			chr.start <- sapply(chr.tmps, function(x)x[1])
+			chr.strand <- rep("+", length(chr.start))
+			chr.strand[which(chr.start < 0)] <- "-"
+			chr.start <- abs(chr.start)
+			chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
+			chr <- paste("chr", chr.tmpc, sep="")
+			chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
+			chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
+			eg.end <- names(chr.tmpe)
+			chr.end <- sapply(chr.tmpe, function(x)x[1])
+			chr.end <- abs(chr.end)
+			chr.sym <- as.list(org.Hs.egSYMBOL)
+			chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
+			#identical(names(chr.sym),eg.start)
+			grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
+			mychrs <- unique(as.character(seqnames(grHs)))
+			mychrs <- mychrs[1:24]
+			grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
+		}else if(org=="mm"){
+				chr.tmps <- as.list(org.Mm.egCHRLOC)
+				chr.tmps <- chr.tmps[!is.na(chr.tmps)]
+				eg.start <- names(chr.tmps)
+				chr.start <- sapply(chr.tmps, function(x)x[1])
+				chr.strand <- rep("+", length(chr.start))
+				chr.strand[which(chr.start < 0)] <- "-"
+				chr.start <- abs(chr.start)
+				chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
+				chr <- paste("chr", chr.tmpc, sep="")
+				chr.tmpe <- as.list(org.Mm.egCHRLOCEND)
+				chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
+				eg.end <- names(chr.tmpe)
+				chr.end <- sapply(chr.tmpe, function(x)x[1])
+				chr.end <- abs(chr.end)
+				chr.sym <- as.list(org.Mm.egSYMBOL)
+				chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
+				#identical(names(chr.sym),eg.start)
+				grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
+				mychrs <- unique(as.character(seqnames(grHs)))
+				mychrs <- mychrs[1:20]
+				grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
+			}
+			if(parallel){
+	             fusionList <- bplapply(tmp.loc.counts, function(x,y,z,j,k) .starFset(x,y,z,j,k), y=names(tmp.loc.counts), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+	        }else{ 
+                 fusionList <- lapply(tmp.loc.counts, function(x,y,z,j,k) .starFset(x,y,z,j,k), y=names(tmp.loc.counts), z=grHs, j=chr.sym, k=org)
+            }
+            return(fusionList)
+}
+#.starFset(tmp.loc.counts, names(tmp.loc.counts))
+.starFset <- function(x, y, z, j, k){
+    counts <- x
+    fusion <- y
+    grHs <- z
+    chr.sym <- j
+    org <- k
+    fusion.tmp <- strsplit(fusion,"\\|")
+    fusion1 <- as.character(unlist(strsplit(fusion.tmp[[1]][1],":")))
+    fusion2 <- as.character(unlist(strsplit(fusion.tmp[[1]][2],":")))
+    strand1 <- fusion1[3]
+    strand2 <-fusion2[3]
+    #detecting genes involved in fusions
+    grG1 <-  GRanges(seqnames = fusion1[1], ranges = IRanges(start = (as.numeric(fusion1[2]) - 30), end= as.numeric(fusion1[2])), strand = strand1)
+    grG2 <-  GRanges(seqnames = fusion2[1], ranges = IRanges(start = as.numeric(fusion2[2]), end= (as.numeric(fusion2[2]) + 30)), strand = strand2)
+    tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
+    if(!is.na(tmpG1)){
+       g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
+    }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
+    tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
+    if(!is.na(tmpG2)){
+       g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
+    }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
+
+    if(org=="hs"){
+        fs.1 <- as.character(getSeq(Hsapiens, grG1))
+        fs.2 <- as.character(getSeq(Hsapiens, grG2))		
+    }else if(org=="mm"){
+        require(BSgenome.Mmusculus.UCSC.mm9) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
+        fs.1 <- as.character(getSeq(Mmusculus, grG1))
+        fs.2 <- as.character(getSeq(Mmusculus, grG2))			
+    }
+	tmpT1 <- ""
+ 	tmpT2 <- ""
+    #exon number
+	tmpEn1 <- ""
+	tmpEn2 <- ""
+    # transcript strand
+	tmpTs1 <- ""
+	tmpTs2 <- ""
+    gr1 <- GRanges(seqnames = fusion1[1], ranges = IRanges(start = (as.numeric(fusion1[2]) - 30), end= as.numeric(fusion1[2])),
+            strand = strand1,
+            KnownGene = as.character(g1),
+            KnownTranscript =  tmpT1,
+            KnownExonNumber = tmpEn1,
+            KnownTranscriptStrand = tmpTs1,
+            FusionJunctionSequence =  fs.1)
+    gr2 <- GRanges(seqnames = fusion2[1], ranges = IRanges(start = as.numeric(fusion2[2]), end= (as.numeric(fusion2[2]) + 30)),
+		   strand = strand2,
+		   KnownGene = as.character(g2),
+		   KnownTranscript =  tmpT2,
+		   KnownExonNumber = tmpEn2,
+		   KnownTranscriptStrand = tmpTs2,
+		   FusionJunctionSequence =  fs.2)
+    grl <- GRangesList("gene1" = gr1, "gene2" = gr2)
+    fusionData <- new("list", fusionTool="STAR", 
+                                 UniqueCuttingPositionCount=NULL, 
+                                 SeedCount=as.numeric(counts), 
+                                 RescuedCount=NULL, 
+                                 SplicePattern="",
+                                 FusionGene=paste(as.character(g1),as.character(g2), sep=":"),
+                                 frameShift=""
+    )
+    return(new("fSet",fusionInfo=fusionData,fusionLoc=grl, fusionRNA=new("DNAStringSet")))
+}		             
+
 
 
