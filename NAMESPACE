@@ -1,4 +1,4 @@
-importFrom(GenomicRanges, GappedAlignments)
+importFrom(GenomicRanges, GAlignments)
 importFrom(AnnotationDbi,as.list)
 export(plotCoverage)
 exportPattern("^[[:alpha:]]+")

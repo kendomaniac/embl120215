@@ -35,7 +35,7 @@ importFusionData <- function(format, filename, ...)
 #FusionMap import
 .fmImport <- function(fusion.report, org=c("hs","mm")){
 	    report <- read.table(fusion.report, sep="\t", header=T)
-		fusionreads.loc <- new("GappedAlignments")
+		fusionreads.loc <- new("GAlignments")
 	    #loading annotation
 	if(org=="hs"){
 		chr.tmps <- as.list(org.Hs.egCHRLOC)
@@ -234,7 +234,7 @@ importFusionData <- function(format, filename, ...)
 		writeLines(tmp, paste(fusion.report,"tmp", sep="."), sep="\n")
 	    report <- read.table(paste(fusion.report,"tmp", sep="."), sep="\t", header=F)
 	    unlink(tmp, force =T)
-	    fusionreads.loc <- new("GappedAlignments") 
+	    fusionreads.loc <- new("GAlignments") 
 	    #strand           	
         strand1 <- "*"
         strand2 <- "*"
@@ -372,7 +372,7 @@ importFusionData <- function(format, filename, ...)
 	    names(report) <- c("chrs.fusion","gene1.fusion.loc", "gene2.fusion.loc", "strand", "fusion.reads","encompassing.reads","spanning.reads",
 		"contraddicting.reads","g1.nts.fusion", "g2.nts.fusion","unused1","separator1","unused2","separator2","seq1","separator3","seq2","separator4",
 		"coverage1", "separator5","coverage2","separator6","unused2")
-	    fusionreads.loc <- new("GappedAlignments") 
+	    fusionreads.loc <- new("GAlignments") 
         #KnownGene1
         g1 <- NA
 		#KnownGene2
@@ -499,7 +499,7 @@ importFusionData <- function(format, filename, ...)
 	    names(flankcase.description) <- c("others","ATAC","GTAT","CTGC","GCAG","GTAG","CTAC")
 	    report <- read.table(fusion.report, sep="\t", header=F, skip=1)
 	    names(report) <- c("chrom","donerEnd","acceptorStart","name","coverage","strand","itemRgb","blockCount","blockSizes","blockStarts","entropy","flank.case","flank.string","fusion.junction", "min.mismatch","max.mismatch","average.mismatch","maximal.of.minimal.doner.site.length","maximal.of.minimal.acceptor.site.length","minimal.anchor.difference")
-	    fusionreads.loc <- new("GappedAlignments") 
+	    fusionreads.loc <- new("GAlignments") 
 		#KnownGene1
 	    g1 <- NA
 	    #KnownGene2
@@ -619,7 +619,7 @@ importFusionData <- function(format, filename, ...)
 
 .dfImport <- function(fusion.report){
 	    report <- read.table(fusion.report, sep="\t", header=T)
-	    fusionreads.loc <- new("GappedAlignments") 
+	    fusionreads.loc <- new("GAlignments") 
 		#KnownGene1
 	    g1 <- NA
 	    #KnownGene2
@@ -711,7 +711,7 @@ importFusionData <- function(format, filename, ...)
 
 .ffImport <- function(fusion.report){
 	    report <- read.table(fusion.report, sep="\t", header=T)
-	    fusionreads.loc <- new("GappedAlignments") 
+	    fusionreads.loc <- new("GAlignments") 
 		#KnownGene1
 	    g1 <- NA
 	    #KnownGene2
@@ -820,7 +820,7 @@ importFusionData <- function(format, filename, ...)
 	    })
 		
         
-	    fusionreads.loc <- new("GappedAlignments")
+	    fusionreads.loc <- new("GAlignments")
 	     
 	    #KnownExonNumber1
 		e1 <- NA
@@ -973,7 +973,7 @@ importFusionData <- function(format, filename, ...)
 	    report <- read.table(fusion.report, sep="\t", header=F)
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
 		report <- report[which(as.numeric(report$spanning_frags) > min.support),]
-		fusionreads.loc <- new("GappedAlignments")
+		fusionreads.loc <- new("GAlignments")
 	if(org=="hs"){
 	    #loading annotation
 		chr.tmps <- as.list(org.Hs.egCHRLOC)
@@ -1282,7 +1282,7 @@ importFusionData <- function(format, filename, ...)
             }
             names(tmp.loc.counts) <- tmp.loc.u
             tmp.loc.counts <- tmp.loc.counts[which(tmp.loc.counts >= min.support)]
-			fusionreads.loc <- new("GappedAlignments")
+			fusionreads.loc <- new("GAlignments")
 		    #loading annotation
 		if(org=="hs"){
 			chr.tmps <- as.list(org.Hs.egCHRLOC)

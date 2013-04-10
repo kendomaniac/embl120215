@@ -23,7 +23,7 @@ A list encompassing:
 \item{frame.pep2}{The frame of the encoded peptide}
 \item{fusion.status}{if peptides are in frame on the basis of the fused mRNAs. IMPORTANT: this information os only based on fusion junction information, if indels are present results might be different. sequencign of the validation.seq, see below are mandatory to confirm the fusion event.}
 \item{validation.seq}{The DNA fragment encompassing the fusion to be used to design PCR primers for sanger sequencing}
-\item{junction.ga}{The GappedAlignment object describing the reads encompassing the fusion junction. If no genomic regions are indicated the reads spanning over the junction are missed.}
+\item{junction.ga}{The GAlignments object describing the reads encompassing the fusion junction. If no genomic regions are indicated the reads spanning over the junction are missed.}
 }
 \author{Raffaele A Calogero}
 \examples{
