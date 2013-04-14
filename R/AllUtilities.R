@@ -88,17 +88,36 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic"),q
 
 
 
-supportingReads <- function(list){
+supportingReads <- function(list, parallel=F){
 	tmp <- list
-	nsr <- sapply(tmp, function(x) x@fusionInfo$SeedCount)
-	nsr <- as.numeric(nsr)
+	if(parallel){
+	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
+         p <- MulticoreParam()
+         nsr <- bplapply(tmp, function(x) x@fusionInfo$SeedCount, BPPARAM=p)
+         nsr <- as.numeric(unlist(nsr))
+    }else{ 
+        nsr <- sapply(tmp, function(x) x@fusionInfo$SeedCount)
+		nsr <- as.numeric(nsr)
+    }
+	return(nsr)	
 }
 ###
-fusionName <- function(list){ 
+fusionName <- function(list, parallel=F){ 
 	tmp <- list
-	g1 <- sapply(tmp, function(x) x@fusionLoc[[1]]@elementMetadata$KnownGene)
-	g2 <- sapply(tmp, function(x) x@fusionLoc[[2]]@elementMetadata$KnownGene)
-	g1g2 <- paste(g1,g2, sep=":")
+	if(parallel){
+	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
+         p <- MulticoreParam()
+
+         g1 <- bplapply(tmp, function(x) x@fusionLoc[[1]]@elementMetadata$KnownGene, BPPARAM=p)
+         g1 <- as.character(unlist(g1))
+		 g2 <- bplapply(tmp, function(x) x@fusionLoc[[2]]@elementMetadata$KnownGene, BPPARAM=p)
+		 g2 <- as.character(unlist(g2))
+		 g1g2 <- paste(g1,g2, sep=":")
+    }else{ 
+        g1 <- sapply(tmp, function(x) x@fusionLoc[[1]]@elementMetadata$KnownGene)
+		g2 <- sapply(tmp, function(x) x@fusionLoc[[2]]@elementMetadata$KnownGene)
+		g1g2 <- paste(g1,g2, sep=":")
+    }
 	return(g1g2)
 }
 

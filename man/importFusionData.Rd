@@ -16,7 +16,7 @@ In the case of chimerascan and star output it is possible to load the data apply
     tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
     #min.support allow to retrieve only the subset of fusions supported by a user defined minimal number of junction spanning reads
     #tmp <- importFusionData("chimerascan", "edgren_cs10.bedpe", min.support=10, org="hs")
-    #tmp <- importFusionData("star", "Chimeric.out.junction", org="hs, parallel=F, hist.file=NULL, min.support=10)
+    #tmp <- importFusionData("star", "Chimeric.out.junction", org="hs", parallel=F, hist.file=NULL, min.support=10)
 }
 \keyword{utilities}
 

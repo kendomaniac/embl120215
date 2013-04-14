@@ -2,9 +2,10 @@
 \alias{fusionName}
 \title{A function to extract fusion names for a list of fSet object}
 \description{A function allowing extract fusion names from a list of fSet objects.}
-\usage{fusionName(list)}
+\usage{fusionName(list, parallel=F)}
 \arguments{
   \item{list}{a list of fSet object}
+  \item{parallel}{option to run a parallel version of the function, default FALSE}
 }
 \author{Raffaele A Calogero}
 \examples{

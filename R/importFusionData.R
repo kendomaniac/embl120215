@@ -1246,8 +1246,8 @@ importFusionData <- function(format, filename, ...)
 }
 #############
 .starImport <- function(fusion.report, org=c("hs","mm"), parallel=F, hist.file=NULL, min.support=10){
-	        require(BiocParallel) || stop("\nMission BiocParallel library\n")
 	        if(parallel){ 
+		         require(BiocParallel) || stop("\nMission BiocParallel library\n")
 	             p <- MulticoreParam()
 	        }
 		    report <- read.table(fusion.report, sep="\t", header=F)
@@ -1282,7 +1282,8 @@ importFusionData <- function(format, filename, ...)
             }
             names(tmp.loc.counts) <- tmp.loc.u
             tmp.loc.counts <- tmp.loc.counts[which(tmp.loc.counts >= min.support)]
-			fusionreads.loc <- new("GAlignments")
+            tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
+			fusionreads.loc <- new("GappedAlignments")
 		    #loading annotation
 		if(org=="hs"){
 			chr.tmps <- as.list(org.Hs.egCHRLOC)
@@ -1329,17 +1330,19 @@ importFusionData <- function(format, filename, ...)
 				mychrs <- mychrs[1:20]
 				grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
 			}
+			
 			if(parallel){
-	             fusionList <- bplapply(tmp.loc.counts, function(x,y,z,j,k) .starFset(x,y,z,j,k), y=names(tmp.loc.counts), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+	             fusionList <- bplapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
 	        }else{ 
-                 fusionList <- lapply(tmp.loc.counts, function(x,y,z,j,k) .starFset(x,y,z,j,k), y=names(tmp.loc.counts), z=grHs, j=chr.sym, k=org)
+                 fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
             }
             return(fusionList)
 }
 #.starFset(tmp.loc.counts, names(tmp.loc.counts))
-.starFset <- function(x, y, z, j, k){
-    counts <- x
-    fusion <- y
+.starFset <- function(x, z, j, k){
+    tmp.x <- strsplit(x,"_")
+    counts <- as.numeric(tmp.x[[1]][2])
+    fusion <- tmp.x[[1]][1]
     grHs <- z
     chr.sym <- j
     org <- k
