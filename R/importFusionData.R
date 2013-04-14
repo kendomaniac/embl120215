@@ -1283,7 +1283,7 @@ importFusionData <- function(format, filename, ...)
             names(tmp.loc.counts) <- tmp.loc.u
             tmp.loc.counts <- tmp.loc.counts[which(tmp.loc.counts >= min.support)]
             tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
-			fusionreads.loc <- new("GappedAlignments")
+			fusionreads.loc <- new("GAlignments")
 		    #loading annotation
 		if(org=="hs"){
 			chr.tmps <- as.list(org.Hs.egCHRLOC)
