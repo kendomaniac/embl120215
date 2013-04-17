@@ -19,7 +19,7 @@
 \begin{document}
 \title{Chimera}
 \author{Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero}
-\date{April 8 2013}
+\date{April 17 2013}
 \maketitle
 
 \section{Introduction}
@@ -89,7 +89,7 @@ The function \textit{importFusionData}  allows to import in a list outputs gener
 
 The function \textit{supportingReads} allows to extract the number of reads supporting each of the detected fusions. It is notable that the same fusion gene is detected with a different number of supporting read depending on the fusion tool used. Furthermore, each tool detects a different number of fusions when querying the same data set. same apply to the supporting reads.
 <<>>==
-supporting.reads <- supportingReads(tmp)
+supporting.reads <- supportingReads(tmp, fusion.reads=c("all","spanning"))
 supporting.reads
 @
 

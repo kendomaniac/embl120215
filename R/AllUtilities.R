@@ -14,7 +14,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic"),q
 		        cat("\nfiltering by supporting reads needs to pass to the method a numerical reads threshold\n")
 		        return()
 		   }
-	       tmp <- supportingReads(x)
+	       tmp <- supportingReads(x, fusion.reads="spanning")
 	       loc <- which(tmp >= query)
        }
        if(type=="intronic"){
@@ -88,16 +88,26 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic"),q
 
 
 
-supportingReads <- function(list, parallel=F){
+supportingReads <- function(list, fusion.reads=c("all","spanning"), parallel=F){
 	tmp <- list
 	if(parallel){
 	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
          p <- MulticoreParam()
-         nsr <- bplapply(tmp, function(x) x@fusionInfo$SeedCount, BPPARAM=p)
-         nsr <- as.numeric(unlist(nsr))
-    }else{ 
-        nsr <- sapply(tmp, function(x) x@fusionInfo$SeedCount)
-		nsr <- as.numeric(nsr)
+         if(fusion.reads=="all"){
+                nsr <- bplapply(tmp, function(x) x@fusionInfo$RescuedCount, BPPARAM=p)
+                nsr <- as.numeric(unlist(nsr))
+         }else if(fusion.reads=="spanning"){
+	            nsr <- bplapply(tmp, function(x) x@fusionInfo$SeedCount, BPPARAM=p)
+	            nsr <- as.numeric(unlist(nsr))
+	     }
+    }else{
+	    if(fusion.reads=="all"){ 
+                nsr <- sapply(tmp, function(x) x@fusionInfo$RescuedCount)
+		        nsr <- as.numeric(nsr)
+	    }else if(fusion.reads=="spanning"){ 
+			    nsr <- sapply(tmp, function(x) x@fusionInfo$SeedCount)
+			    nsr <- as.numeric(nsr)
+	    }
     }
 	return(nsr)	
 }
@@ -120,5 +130,23 @@ fusionName <- function(list, parallel=F){
     }
 	return(g1g2)
 }
+####
+starReads <- function(fusion.report, parallel=F){
+	        if(parallel){ 
+		         require(BiocParallel) || stop("\nMission BiocParallel library\n")
+	             p <- MulticoreParam()
+	        }
+		    report <- read.table(fusion.report, sep="\t", header=F)
+		    names(report) <- c("gene1.chr","gene1.start", "gene1.strand", "gene2.chr","gene2.start", "gene2.strand","junction.type","repeat.left","repeat.right","reads.name","first.aligned.read1","read1.cigar","first.aligned.read2","read2.cigar")
+            #reads GA
+            r1.gr <- GRanges(seqnames = as.character(report$gene1.chr), 
+                              ranges = IRanges(start = as.numeric(report$first.aligned.read1), 
+                              end= as.numeric(report$first.aligned.read1)),  cigar=as.character(report$read1.cigar))
+            r2.gr <- GRanges(seqnames = as.character(report$gene2.chr), 
+                              ranges = IRanges(start = as.numeric(report$first.aligned.read2), 
+                              end= as.numeric(report$first.aligned.read2)),  cigar=as.character(report$read2.cigar))
+		    reads.gr <- GRangesList(r1.gr, r2.gr)
+		    return(reads.gr)
+}            
 
 

@@ -35,7 +35,7 @@ importFusionData <- function(format, filename, ...)
 #FusionMap import
 .fmImport <- function(fusion.report, org=c("hs","mm")){
 	    report <- read.table(fusion.report, sep="\t", header=T)
-		fusionreads.loc <- new("GAlignments")
+#		fusionreads.loc <- new("GAlignments")
 	    #loading annotation
 	if(org=="hs"){
 		chr.tmps <- as.list(org.Hs.egCHRLOC)
@@ -234,7 +234,7 @@ importFusionData <- function(format, filename, ...)
 		writeLines(tmp, paste(fusion.report,"tmp", sep="."), sep="\n")
 	    report <- read.table(paste(fusion.report,"tmp", sep="."), sep="\t", header=F)
 	    unlink(tmp, force =T)
-	    fusionreads.loc <- new("GAlignments") 
+#	    fusionreads.loc <- new("GAlignments") 
 	    #strand           	
         strand1 <- "*"
         strand2 <- "*"
@@ -372,7 +372,7 @@ importFusionData <- function(format, filename, ...)
 	    names(report) <- c("chrs.fusion","gene1.fusion.loc", "gene2.fusion.loc", "strand", "fusion.reads","encompassing.reads","spanning.reads",
 		"contraddicting.reads","g1.nts.fusion", "g2.nts.fusion","unused1","separator1","unused2","separator2","seq1","separator3","seq2","separator4",
 		"coverage1", "separator5","coverage2","separator6","unused2")
-	    fusionreads.loc <- new("GAlignments") 
+	#    fusionreads.loc <- new("GAlignments") 
         #KnownGene1
         g1 <- NA
 		#KnownGene2
@@ -499,7 +499,7 @@ importFusionData <- function(format, filename, ...)
 	    names(flankcase.description) <- c("others","ATAC","GTAT","CTGC","GCAG","GTAG","CTAC")
 	    report <- read.table(fusion.report, sep="\t", header=F, skip=1)
 	    names(report) <- c("chrom","donerEnd","acceptorStart","name","coverage","strand","itemRgb","blockCount","blockSizes","blockStarts","entropy","flank.case","flank.string","fusion.junction", "min.mismatch","max.mismatch","average.mismatch","maximal.of.minimal.doner.site.length","maximal.of.minimal.acceptor.site.length","minimal.anchor.difference")
-	    fusionreads.loc <- new("GAlignments") 
+#	    fusionreads.loc <- new("GAlignments") 
 		#KnownGene1
 	    g1 <- NA
 	    #KnownGene2
@@ -619,7 +619,7 @@ importFusionData <- function(format, filename, ...)
 
 .dfImport <- function(fusion.report){
 	    report <- read.table(fusion.report, sep="\t", header=T)
-	    fusionreads.loc <- new("GAlignments") 
+#	    fusionreads.loc <- new("GAlignments") 
 		#KnownGene1
 	    g1 <- NA
 	    #KnownGene2
@@ -711,7 +711,7 @@ importFusionData <- function(format, filename, ...)
 
 .ffImport <- function(fusion.report){
 	    report <- read.table(fusion.report, sep="\t", header=T)
-	    fusionreads.loc <- new("GAlignments") 
+#	    fusionreads.loc <- new("GAlignments") 
 		#KnownGene1
 	    g1 <- NA
 	    #KnownGene2
@@ -820,7 +820,7 @@ importFusionData <- function(format, filename, ...)
 	    })
 		
         
-	    fusionreads.loc <- new("GAlignments")
+#	    fusionreads.loc <- new("GAlignments")
 	     
 	    #KnownExonNumber1
 		e1 <- NA
@@ -973,7 +973,7 @@ importFusionData <- function(format, filename, ...)
 	    report <- read.table(fusion.report, sep="\t", header=F)
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
 		report <- report[which(as.numeric(report$spanning_frags) > min.support),]
-		fusionreads.loc <- new("GAlignments")
+	#	fusionreads.loc <- new("GAlignments")
 	if(org=="hs"){
 	    #loading annotation
 		chr.tmps <- as.list(org.Hs.egCHRLOC)
@@ -1252,26 +1252,45 @@ importFusionData <- function(format, filename, ...)
 	        }
 		    report <- read.table(fusion.report, sep="\t", header=F)
 		    names(report) <- c("gene1.chr","gene1.start", "gene1.strand", "gene2.chr","gene2.start", "gene2.strand","junction.type","repeat.left","repeat.right","reads.name","first.aligned.read1","read1.cigar","first.aligned.read2","read2.cigar")
+
+            r1.gr <- GRanges(seqnames = as.character(report$gene1.chr), 
+                              ranges = IRanges(start = as.numeric(report$first.aligned.read1), 
+                              end= as.numeric(report$first.aligned.read1)),  cigar=as.character(report$read1.cigar))
+            r2.gr <- GRanges(seqnames = as.character(report$gene2.chr), 
+                              ranges = IRanges(start = as.numeric(report$first.aligned.read2), 
+                              end= as.numeric(report$first.aligned.read2)),  cigar=as.character(report$read2.cigar))
+            
+            r1.span <- grep("p",elementMetadata(r1.gr)$cigar)
+			r2.span <- grep("p",elementMetadata(r2.gr)$cigar)
+			r1r2.span <- unique(c(r1.span, r2.span)) #location of spanning reads			
+            
             tmp.loc1 <- paste(as.character(report[,1]),report[,2],as.character(report[,3]), sep=":")
             tmp.loc2 <- paste(as.character(report[,4]),report[,5],as.character(report[,6]), sep=":")
             tmp.loc <- paste(tmp.loc1, tmp.loc2, sep="|")
+            tmp.loc.span <-  tmp.loc[r1r2.span]
             tmp.loc1 <- NULL
             tmp.loc2 <- NULL
-            #parallelizzare
-#            ptm <- proc.time()
-#            tmp1 <- bpvec(tmp.loc, function(x) gsub(" ","",x), BPPARAM=p)
-#            proc.time() - ptm
-		    
             # the function discard fusions supported by a single read
             tmp.loc1 <- tmp.loc[duplicated(tmp.loc)]
             tmp.loc.u <- unique(tmp.loc1)
+            #da rivedere non so se è giusto farlo
+            tmp.loc.u.span <- intersect(tmp.loc.u, tmp.loc.span)
+            ###nel senso che mi butta via parecchia roba
             if(parallel){
 	             tmp.loc.counts <- bplapply(tmp.loc.u, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
 	             tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
+	            #spanning
+	             tmp.loc.counts.span <- bplapply(tmp.loc.u.span, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
+	             tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
+
 	        }else{ 
                  tmp.loc.counts <- lapply(tmp.loc.u,function(x,y) length(which(y==x)), y=tmp.loc1)
                  tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
+	            #spanning
+                 tmp.loc.counts.span <- lapply(tmp.loc.u.span,function(x,y) length(which(y==x)), y=tmp.loc1)
+                 tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
             }
+
             #at this point I have the supporting number of reads for fusions supported by more than one read
             if(length(hist.file)>0){
 	               pdf("hist")
@@ -1283,7 +1302,11 @@ importFusionData <- function(format, filename, ...)
             names(tmp.loc.counts) <- tmp.loc.u
             tmp.loc.counts <- tmp.loc.counts[which(tmp.loc.counts >= min.support)]
             tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
-			fusionreads.loc <- new("GAlignments")
+           #spanning
+            names(tmp.loc.counts.span) <- tmp.loc.u.span
+            tmp.loc.counts.span <- paste(names(tmp.loc.counts.span), tmp.loc.counts.span, sep="_")
+
+		#	fusionreads.loc <- new("GAlignments")
 		    #loading annotation
 		if(org=="hs"){
 			chr.tmps <- as.list(org.Hs.egCHRLOC)
@@ -1333,13 +1356,32 @@ importFusionData <- function(format, filename, ...)
 			
 			if(parallel){
 	             fusionList <- bplapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+	             fusionList.span <- bplapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+	             counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=T)
+	             names.span <- fusionName(fusionList.span, parallel=T)
+	             names(counts.span) <- names.span
+	             names.all <- fusionName(fusionList, parallel=T)
+	             which.all <- which(names.all %in% names.span)
+            #     save(fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
+	             for(i in 1:length(which.all)){
+		              fusionList[[i]]@fusionInfo$SeedCount <- counts.span[which(names(counts.span) == names.all[i])]
+	             }
 	        }else{ 
                  fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
+                 fusionList.span <- lapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
+                 counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=F)
+                 names.span <- fusionName(fusionList.span, parallel=F)
+                 names(counts.span) <- names.span
+                 names.all <- fusionName(fusionList, parallel=F)
+                 which.all <- which(names.all %in% names.span)
+	             for(i in 1:length(which.all)){
+		              fusionList[[i]]@fusionInfo$SeedCount <- counts.span[which(names(counts.span) == names.all[i])]
+	             }
             }
             return(fusionList)
 }
 #.starFset(tmp.loc.counts, names(tmp.loc.counts))
-.starFset <- function(x, z, j, k){
+.starFset <- function(x, z, j, k, y){
     tmp.x <- strsplit(x,"_")
     counts <- as.numeric(tmp.x[[1]][2])
     fusion <- tmp.x[[1]][1]
@@ -1396,8 +1438,8 @@ importFusionData <- function(format, filename, ...)
     grl <- GRangesList("gene1" = gr1, "gene2" = gr2)
     fusionData <- new("list", fusionTool="STAR", 
                                  UniqueCuttingPositionCount=NULL, 
-                                 SeedCount=as.numeric(counts), 
-                                 RescuedCount=NULL, 
+                                 SeedCount=NULL, 
+                                 RescuedCount=as.numeric(counts), 
                                  SplicePattern="",
                                  FusionGene=paste(as.character(g1),as.character(g2), sep=":"),
                                  frameShift=""

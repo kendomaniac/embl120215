@@ -16,7 +16,10 @@ In the case of chimerascan and star output it is possible to load the data apply
     tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
     #min.support allow to retrieve only the subset of fusions supported by a user defined minimal number of junction spanning reads
     #tmp <- importFusionData("chimerascan", "edgren_cs10.bedpe", min.support=10, org="hs")
-    #tmp <- importFusionData("star", "Chimeric.out.junction", org="hs", parallel=F, hist.file=NULL, min.support=10)
+    #download Edgren Chimeric.out.junction. This file encompass the results obtaines combined all cell lines used in Edgren experiment 
+    #download.file("http://sourceforge.net/projects/ochguiextras/files/chimera/Chimeric.out.junction.zip/download", "Chimeric.out.junction.zip", mode="wb")
+    #unzip("Chimeric.out.junction.zip")
+    #tmp <- importFusionData("star", "Chimeric.out.junction", org="hs", parallel=T, hist.file=NULL, min.support=100)
 }
 \keyword{utilities}
 
