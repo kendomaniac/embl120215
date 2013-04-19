@@ -1,6 +1,6 @@
 
 ###
-filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic"),query){
+filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "annotated.genes", "read.through"),query, parallel=F){
        if(type=="fusion.names"){
 	       if(!is.character(query)){
 		        cat("\nfiltering by fusion names needs to pass to the method vector of character names\n")
@@ -22,6 +22,47 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic"),q
           tmp <- sapply(x,.detectIntronic)
           loc <- which(tmp == 0)
        }
+       if(type=="annotated.genes"){
+	        if(parallel){
+			     require(BiocParallel) || stop("\nMission BiocParallel library\n")
+		         p <- MulticoreParam()
+		         tmp <- fusionName(x, parallel=T)
+			     tmp.rm <- grep("chr", tmp)
+			     loc <- setdiff(seq(1, length(tmp)),tmp.rm)
+		    }else{
+			     tmp <- fusionName(x)
+			     tmp.rm <- grep("chr", tmp)
+			     loc <- setdiff(seq(1, length(tmp)),tmp.rm)
+		    }
+		    
+       }
+       if(type=="read.through"){
+	        if(parallel){
+			     require(BiocParallel) || stop("\nMission BiocParallel library\n")
+		         p <- MulticoreParam()
+		         tmp <- fusionName(x, parallel=T)
+			     tmp.rm <- grep("chr", tmp)
+			     nsr <- bplapply(tmp.rm, function(x){
+			              if(x[1]==x[2]){
+				              return(1)
+			              }else{return(0)}
+			     }, BPPARAM=p)
+			     nsr <- as.numeric(unlist(nsr))
+			     loc <- which(nsr == 0)
+		    }else{
+			     tmp <- fusionName(x)
+			     tmp.rm <- strsplit(tmp, ":")
+			     nsr <- sapply(tmp.rm, function(x){
+			              if(x[1]==x[2]){
+				              return(1)
+			              }else{return(0)}
+			     })
+			     nsr <- as.numeric(unlist(nsr))
+			     loc <- which(nsr == 0)
+		    }
+		    
+       }
+
        filtered <- x[loc]
        return(filtered)
 }

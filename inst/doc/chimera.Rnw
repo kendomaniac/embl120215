@@ -126,9 +126,14 @@ The function \textit{tophatRun} maps reads to a chimera sequence set, eg. \texti
 
 
 The function \textit{filterList} allows to filter a list of fSet objects on the basis of supporting reads or fusion names or presence of intronic sequence in the fusion. The rational of filtering on the basis of supporting reads is that  biological effect also depends on the amount of the expressed mRNA, thus highly expressed fusions, i.e. fusions with an high number of junction-spanning reads, might have a more important role in cancer physiology. On the other hand the presence e of an intron in a fusion generates a very large transcript, which do not produce in frame transcripts.
+Furthermore it is possible to remove read-through events, i.e. fusion in which different exons of the same gene are recognised as a fusion being separated by extremely long introns. It is also possible to retain only fusions in which only annotated names are considered, eg. PID1:TP53 is retained and PID1:chr2:133038625-133038655 is removed.
 <<>>==
 tmp1 <- filterList(tmp, type="fusion.names", fusion.names[c(1,3,7)])
 tmp2 <- filterList(tmp, type="supporting.reads", 2)
+#tmp3 <- filterList(tmp, type="intronic")
+tmp4 <- filterList(tmp, type="annotated.genes")
+tmp5 <- filterList(tmp, type="read.through")
+
 @
 
 

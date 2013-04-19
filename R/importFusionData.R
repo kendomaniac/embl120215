@@ -1364,7 +1364,7 @@ importFusionData <- function(format, filename, ...)
 	             which.all <- which(names.all %in% names.span)
             #     save(fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
 	             for(i in 1:length(which.all)){
-		              fusionList[[i]]@fusionInfo$SeedCount <- counts.span[which(names(counts.span) == names.all[i])]
+		              fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
 	             }
 	        }else{ 
                  fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
@@ -1375,7 +1375,7 @@ importFusionData <- function(format, filename, ...)
                  names.all <- fusionName(fusionList, parallel=F)
                  which.all <- which(names.all %in% names.span)
 	             for(i in 1:length(which.all)){
-		              fusionList[[i]]@fusionInfo$SeedCount <- counts.span[which(names(counts.span) == names.all[i])]
+		              fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
 	             }
             }
             return(fusionList)
