@@ -18,11 +18,11 @@
 \examples{
 tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
 fusion.names <- fusionName(tmp)
-tmp1 <- filterList(tmp, type="fusion.names", fusion.names[c(1,3,7)])
-tmp2 <- filterList(tmp, type="supporting.reads", 2)
+tmp1 <- filterList(tmp, type="fusion.names", fusion.names[c(1,3,7)], parallel=F)
+tmp2 <- filterList(tmp, type="supporting.reads", 2, parallel=F)
 #tmp3 <- filterList(tmp, type="intronic")
-#tmp4 <- filterList(tmp, type="annotated.genes")
-#tmp5 <- filterList(tmp, type="read.through")
+#tmp4 <- filterList(tmp, type="annotated.genes", parallel=F)
+#tmp5 <- filterList(tmp, type="read.through", parallel=F)
 }
 \keyword{utilities}
 
