@@ -1245,7 +1245,7 @@ importFusionData <- function(format, filename, ...)
     }
 }
 #############
-.starImport <- function(fusion.report, org=c("hs","mm"), parallel=F, hist.file=NULL, min.support=10){
+.starImport <- function(fusion.report, org=c("hs","mm"), parallel=FALSE, hist.file=NULL, min.support=10){
 	        if(parallel){ 
 		         require(BiocParallel) || stop("\nMission BiocParallel library\n")
 	             p <- MulticoreParam()
@@ -1255,14 +1255,14 @@ importFusionData <- function(format, filename, ...)
 
             r1.gr <- GRanges(seqnames = as.character(report$gene1.chr), 
                               ranges = IRanges(start = as.numeric(report$first.aligned.read1), 
-                              end= as.numeric(report$first.aligned.read1)),  cigar=as.character(report$read1.cigar))
+                              end= as.numeric(report$first.aligned.read1)),  cigar=as.character(report$read1.cigar), junction.type=as.numeric(report$junction.type))
             r2.gr <- GRanges(seqnames = as.character(report$gene2.chr), 
                               ranges = IRanges(start = as.numeric(report$first.aligned.read2), 
-                              end= as.numeric(report$first.aligned.read2)),  cigar=as.character(report$read2.cigar))
+                              end= as.numeric(report$first.aligned.read2)),  cigar=as.character(report$read2.cigar), junction.type=as.numeric(report$junction.type))
             
-            r1.span <- grep("p",elementMetadata(r1.gr)$cigar)
-			r2.span <- grep("p",elementMetadata(r2.gr)$cigar)
-			r1r2.span <- unique(c(r1.span, r2.span)) #location of spanning reads			
+            spanning <- which(elementMetadata(r1.gr)$junction.type != -1)
+			r1r2.span <- setdiff(seq(1,length(r1.gr)), spanning) #location of spanning reads
+			###da qui			
             
             tmp.loc1 <- paste(as.character(report[,1]),report[,2],as.character(report[,3]), sep=":")
             tmp.loc2 <- paste(as.character(report[,4]),report[,5],as.character(report[,6]), sep=":")
@@ -1276,6 +1276,8 @@ importFusionData <- function(format, filename, ...)
             #da rivedere non so se è giusto farlo
             tmp.loc.u.span <- intersect(tmp.loc.u, tmp.loc.span)
             ###nel senso che mi butta via parecchia roba
+            #the encompassing chimeric reads are marked with -1 in column junction.type, 
+            #while spanning reads are marked with 0 for non-GT/AG introns, 1-GT/AG, 2-CT/AC.
             if(parallel){
 	             tmp.loc.counts <- bplapply(tmp.loc.u, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
 	             tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
@@ -1356,27 +1358,27 @@ importFusionData <- function(format, filename, ...)
 			
 			if(parallel){
 	             fusionList <- bplapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
-	            # fusionList.span <- bplapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
-	            # counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=T)
-	            # names.span <- fusionName(fusionList.span, parallel=T)
-	            # names(counts.span) <- names.span
-	            # names.all <- fusionName(fusionList, parallel=T)
-	            # which.all <- which(names.all %in% names.span)
-            #     save(fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
-	        #     for(i in 1:length(which.all)){
-		    #          fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
-	        #     }
+	             fusionList.span <- bplapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+	             counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=T)
+	             names.span <- fusionName(fusionList.span, parallel=T)
+	             names(counts.span) <- names.span
+	             names.all <- fusionName(fusionList, parallel=T)
+	             which.all <- which(names.all %in% names.span)
+            #    save(fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
+	             for(i in 1:length(which.all)){
+		              fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
+	             }
 	        }else{ 
                  fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
-            #     fusionList.span <- lapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
-            #     counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=F)
-            #     names.span <- fusionName(fusionList.span, parallel=F)
-            #     names(counts.span) <- names.span
-            #     names.all <- fusionName(fusionList, parallel=F)
-            #     which.all <- which(names.all %in% names.span)
-	        #     for(i in 1:length(which.all)){
-		    #          fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
-	        #     }
+                 fusionList.span <- lapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
+                 counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=F)
+                 names.span <- fusionName(fusionList.span, parallel=F)
+                 names(counts.span) <- names.span
+                 names.all <- fusionName(fusionList, parallel=F)
+                 which.all <- which(names.all %in% names.span)
+	             for(i in 1:length(which.all)){
+		              fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
+	             }
             }
             return(fusionList)
 }

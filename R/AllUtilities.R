@@ -1,6 +1,6 @@
 
 ###
-filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "annotated.genes", "read.through"),query, parallel=F){
+filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "annotated.genes", "read.through"),query, parallel=FALSE){
        if(type=="fusion.names"){
 	       if(!is.character(query)){
 		        cat("\nfiltering by fusion names needs to pass to the method vector of character names\n")
@@ -152,7 +152,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 
 
 
-supportingReads <- function(list, fusion.reads=c("all","spanning"), parallel=F){
+supportingReads <- function(list, fusion.reads=c("all","spanning"), parallel=FALSE){
 	tmp <- list
 	if(parallel){
 	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
@@ -176,7 +176,7 @@ supportingReads <- function(list, fusion.reads=c("all","spanning"), parallel=F){
 	return(nsr)	
 }
 ###
-fusionName <- function(list, parallel=F){ 
+fusionName <- function(list, parallel=FALSE){ 
 	tmp <- list
 	if(parallel){
 	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
@@ -195,7 +195,7 @@ fusionName <- function(list, parallel=F){
 	return(g1g2)
 }
 ####
-starReads <- function(fusion.report, parallel=F){
+starReads <- function(fusion.report, parallel=FALSE){
 	        if(parallel){ 
 		         require(BiocParallel) || stop("\nMission BiocParallel library\n")
 	             p <- MulticoreParam()
