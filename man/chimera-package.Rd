@@ -27,3 +27,4 @@ Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
 ~~ Literature or other references for background information ~~
 }
 \keyword{ package }
+

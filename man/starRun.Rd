@@ -28,3 +28,4 @@ database. The fusion nucleotide sequences was generated with the function chimer
 \seealso{ \code{\link{chimeraSeqs}}}
 \keyword{utilities}
 
+

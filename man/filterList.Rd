@@ -26,3 +26,4 @@ tmp2 <- filterList(tmp, type="supporting.reads", 2, parallel=FALSE)
 }
 \keyword{utilities}
 
+

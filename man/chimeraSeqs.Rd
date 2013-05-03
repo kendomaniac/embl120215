@@ -26,3 +26,4 @@ In case the fusion junction is located in an intronic sequence, a warning is pro
 \seealso{\code{\link{fusionName}}}
 \keyword{utilities}
 
+

@@ -37,3 +37,4 @@
 \seealso{\code{\link{fusionName}}, \code{\link{chimeraSeqs}}}
 \keyword{utilities}
 
+

@@ -65,3 +65,4 @@ ga <- fusionGA(myset)
 \seealso{\code{\link{chimeraSeqs}}, \code{\link{tophatRun}}, \code{\link{plotCoverage}}}
 
 \keyword{classes}
+
