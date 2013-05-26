@@ -1301,12 +1301,21 @@ importFusionData <- function(format, filename, ...)
 	               dev.off()
 	               cat(paste("\nDistribution of fusions is saved in ",hist,"\n", sep=""))
             }
+            #all
             names(tmp.loc.counts) <- tmp.loc.u
             tmp.loc.counts <- tmp.loc.counts[which(tmp.loc.counts >= min.support)]
-            tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
            #spanning
             names(tmp.loc.counts.span) <- tmp.loc.u.span
+            tmp.loc.counts.span <- tmp.loc.counts.span[which(names(tmp.loc.counts.span)%in%names(tmp.loc.counts))]
+
+            tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
+            mt <- grep("MT:", tmp.loc.counts)
+            tmp.loc.counts <- tmp.loc.counts[setdiff(seq(1, length(tmp.loc.counts)),mt)]
+            
             tmp.loc.counts.span <- paste(names(tmp.loc.counts.span), tmp.loc.counts.span, sep="_")
+            mt <- grep("MT:", tmp.loc.counts.span)
+            tmp.loc.counts.span <- tmp.loc.counts.span[setdiff(seq(1, length(tmp.loc.counts.span)),mt)]
+
 
 		#	fusionreads.loc <- new("GAlignments")
 		    #loading annotation
@@ -1364,9 +1373,14 @@ importFusionData <- function(format, filename, ...)
 	             names(counts.span) <- names.span
 	             names.all <- fusionName(fusionList, parallel=T)
 	             which.all <- which(names.all %in% names.span)
-            #    save(fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
+                save(fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
 	             for(i in 1:length(which.all)){
-		              fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
+		              seed.span <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
+		              if(length(seed.span)==1){
+		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span
+	                  }else{
+		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
+	                  }
 	             }
 	        }else{ 
                  fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
@@ -1377,7 +1391,12 @@ importFusionData <- function(format, filename, ...)
                  names.all <- fusionName(fusionList, parallel=F)
                  which.all <- which(names.all %in% names.span)
 	             for(i in 1:length(which.all)){
-		              fusionList[[i]]@fusionInfo$SeedCount <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
+		              seed.span <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
+		              if(length(seed.span)==1){
+		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span
+	                  }else{
+		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
+	                  }
 	             }
             }
             return(fusionList)

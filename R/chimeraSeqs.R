@@ -97,32 +97,33 @@ chimeraSeqs <- function(fset, extend=1000, type="transcripts"){
 	     return()
 	  }
    }else if(length(chimera.tmp[[1]])==3){
-        tmp <- grep("chr",chimera.tmp[[1]])
+      tmp <- grep("chr",chimera.tmp[[1]])
+      if(type=="transcripts"){
         if(tmp == 2){
-	     g1 <- chimera.tmp[[1]][1]
-	     eg1 <- names(chr.sym[which(chr.sym == g1)])
-	     eg.lst <- list(gene_id=eg1)
-		 eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
-		 #getting only the trs encompassing fusion position
-		 fusion.trs <- findOverlaps(grl[[1]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
-		 eg.trs.n <- eg.trs.n[fusion.trs]
-		 tmp.tx <- as.character(elementMetadata(eg.trs.n)$tx_id)
-		 tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
-		 tmp.gene1 <- NULL
-		 for(i in 1:length(tmp.tx)){
-           tmp.gene1 <- c(tmp.gene1, .buildFusion(type="donor.end", grl, tmp.tx[i]))
-         }
-         names(tmp.gene1) <- tmp.name #list of seqs
+	         g1 <- chimera.tmp[[1]][1]
+	         eg1 <- names(chr.sym[which(chr.sym == g1)])
+	         eg.lst <- list(gene_id=eg1)
+		     eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
+		     #getting only the trs encompassing fusion position
+		     fusion.trs <- findOverlaps(grl[[1]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
+		     eg.trs.n <- eg.trs.n[fusion.trs]
+		     tmp.tx <- as.character(elementMetadata(eg.trs.n)$tx_id)
+		     tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
+		     tmp.gene1 <- NULL
+		     for(i in 1:length(tmp.tx)){
+               tmp.gene1 <- c(tmp.gene1, .buildFusion(type="donor.end", grl, tmp.tx[i]))
+             }
+             names(tmp.gene1) <- tmp.name #list of seqs
 
-         grl2 <- new("GRangesList")
-	     cat("\nAcceptor gene start does not fit the expected start on the detected fusion\nFusion is located outside gene exons. Fusion sequence is assembled using:")
-         end(grl[[2]]) <- end(grl[[2]]) + extend
-         cat(paste(as.character(seqnames(grl[[2]])), sep=":",paste(start(grl[[2]]), end(grl[[2]]),sep="-")),"\n")
-	     grl2[[1]] <- grl[[2]]
-	     names(grl2) <- paste(as.character(seqnames(grl[[2]])), sep=":",paste(start(grl[[2]]), end(grl[[2]]),sep="-"))
-	     acceptorGeneList <- list()
-	     z <- 1
-	     for(i in 1:length(grl2)){
+             grl2 <- new("GRangesList")
+	         cat("\nAcceptor gene start does not fit the expected start on the detected fusion\nFusion is located outside gene exons. Fusion sequence is assembled using:")
+             end(grl[[2]]) <- end(grl[[2]]) + extend
+             cat(paste(as.character(seqnames(grl[[2]])), sep=":",paste(start(grl[[2]]), end(grl[[2]]),sep="-")),"\n")
+	         grl2[[1]] <- grl[[2]]
+	         names(grl2) <- paste(as.character(seqnames(grl[[2]])), sep=":",paste(start(grl[[2]]), end(grl[[2]]),sep="-"))
+	         acceptorGeneList <- list()
+	         z <- 1
+	         for(i in 1:length(grl2)){
 		        gr2.tmp <- grl2[i]
 		        acceptorGene <- NULL
 		        for(j in 1:length(gr2.tmp[[1]])){
@@ -130,24 +131,20 @@ chimeraSeqs <- function(fset, extend=1000, type="transcripts"){
 		        }
 		        acceptorGeneList[[z]] <- paste(acceptorGene, collapse="")
 		        z <- z+1
-	     }
-	     names(acceptorGeneList) <- names(grl2)
-	     fusions <- NULL
-	     fusions.names <- NULL
-         for(i in 1: length(tmp.gene1)){
-	      	for(j in 1: length(acceptorGeneList)){
-                  fusions <- c(fusions, paste(as.character(tmp.gene1[[i]]), as.character(acceptorGeneList[[j]]),sep="",collapse=""))
-                  fusions.names <- c(fusions.names, paste(paste(names(tmp.gene1[i]),length(tmp.gene1[[i]]),sep="-"), paste(names(acceptorGeneList[j]), extend,sep="-"), sep=":"))
-	        }
-         }
-         fusions <- DNAStringSet(unlist(fusions))
-         names(fusions) <- fusions.names
-	     return(fusions)
-	     }	else if(type=="gene"){
-		        cat("\nNot implemented, yet\n")       
-		 }
-        }else if(tmp == 1) {
-	      if(type=="transcripts"){
+	          }
+	          names(acceptorGeneList) <- names(grl2)
+	          fusions <- NULL
+	          fusions.names <- NULL
+              for(i in 1: length(tmp.gene1)){
+	            	for(j in 1: length(acceptorGeneList)){
+                       fusions <- c(fusions, paste(as.character(tmp.gene1[[i]]), as.character(acceptorGeneList[[j]]),sep="",collapse=""))
+                       fusions.names <- c(fusions.names, paste(paste(names(tmp.gene1[i]),length(tmp.gene1[[i]]),sep="-"), paste(names(acceptorGeneList[j]), extend,sep="-"), sep=":"))
+	                }
+              }
+              fusions <- DNAStringSet(unlist(fusions))
+              names(fusions) <- fusions.names
+	          return(fusions)
+	     }else if(tmp == 1) {
 	       grl1 <- new("GRangesList")
 	       cat("\nDonor gene end does not fit the expected end on the detected fusion.\nFusion is located outside gene exons. Fusion sequence is assembled using:")
            start(grl[[1]]) <- start(grl[[1]]) - extend
@@ -168,7 +165,7 @@ chimeraSeqs <- function(fset, extend=1000, type="transcripts"){
            }
            names(donorGeneList) <- names(grl1)
            ###
-	       g2 <- chimera.tmp[[2]][1]
+	       g2 <- chimera.tmp[[1]][3]
 	       eg2 <- names(chr.sym[which(chr.sym == g2)])
 	       eg.lst <- list(gene_id=eg2)
 		   eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
@@ -193,10 +190,11 @@ chimeraSeqs <- function(fset, extend=1000, type="transcripts"){
            fusions <- DNAStringSet(unlist(fusions))
            names(fusions) <- fusions.names
            return(fusions)
-        }else if(type=="gene"){
+        }
+     }else if(type=="gene"){
 	       cat("\nNot implemented, yet\n")
 	       return()
-	    }
+	 }
    }else if(length(chimera.tmp[[1]])==4){
 	    if(type=="transcripts"){
 	       grl1 <- new("GRangesList")
@@ -257,3 +255,5 @@ chimeraSeqs <- function(fset, extend=1000, type="transcripts"){
 	   }
    }
 }
+
+

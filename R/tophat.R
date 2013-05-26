@@ -3,18 +3,31 @@ tophatInstallation <- function(binDir, os=c("unix","mac")){
 	mydir <- getwd()
 	if(os=="unix"){
 		bowtieDirLocation  <- paste(.path.package("chimera", quiet = FALSE), "/bowtie", sep="")
+		bowtie2DirLocation  <- paste(.path.package("chimera", quiet = FALSE), "/bowtie2", sep="")
 		tmp.info <- dir(paste(.path.package("chimera", quiet = FALSE)))
 		if(length(grep("bowtie", tmp.info))>0){
-		unlink(bowtieDirLocation, recursive = T, force = T)
+		   unlink(bowtieDirLocation, recursive = T, force = T)
+	    }
+	    if(length(grep("bowtie2", tmp.info))>0){
+		   unlink(bowtie2DirLocation, recursive = T, force = T)
 	    }
 		dir.create(bowtieDirLocation, showWarnings = TRUE, recursive = FALSE)
 		setwd(bowtieDirLocation)
 		cat("\nBegin downloads of bowtie.....\n")
-		download.file("http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.9/bowtie-0.12.9-linux-x86_64.zip/download", "bowtie.zip", mode="wb")
-        cat("\nThe Bowtie downloaded version is bowtie_0_12_9\n")
+		download.file("http://sourceforge.net/projects/bowtie-bio/files/bowtie/1.0.0/bowtie-1.0.0-linux-x86_64.zip/download", "bowtie.zip", mode="wb")
+        cat("\nThe Bowtie downloaded version is bowtie_1_0_0\n")
         system(paste("unzip bowtie.zip", sep=""))
-        system("cp -fR ./bowtie-0.12.9/* .")
-        system("rm -fR ./bowtie-0.12.9/")
+        system("cp -fR ./bowtie-1.0.0/* .")
+        system("rm -fR ./bowtie-1.0.0/")
+		dir.create(bowtie2DirLocation, showWarnings = TRUE, recursive = FALSE)
+		setwd(bowtie2DirLocation)
+		cat("\nBegin downloads of bowtie2.....\n")
+		download.file("http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.1.0/bowtie2-2.1.0-linux-x86_64.zip/download", "bowtie.zip", mode="wb")
+        cat("\nThe Bowtie downloaded version is bowtie_2_1_0\n")
+        system(paste("unzip bowtie.zip", sep=""))
+        system("cp -fR ./bowtie2-2.1.0/* .")
+        system("rm -fR ./bowtie2-2.1.0/")
+
         tophatDirLocation  <- paste(.path.package("chimera", quiet = FALSE), "/tophat", sep="")
 		if(length(grep("tophat", tmp.info))>0){
 		unlink(tophatDirLocation, recursive = T, force = T)
@@ -46,7 +59,15 @@ tophatInstallation <- function(binDir, os=c("unix","mac")){
 		system(paste("chmod +x ",bowtieDirLocation, "/bowtie-build", sep=""))
 		system(paste("ln -fs ",bowtieDirLocation,"/bowtie-build ", binDir, "/bowtie-build", sep=""))
 		system(paste("chmod +x ",bowtieDirLocation, "/bowtie-inspect", sep=""))
-		system(paste("ln -fs ",bowtieDirLocation,"/bowtie-inspect ", binDir, "/bowtie-inspect", sep=""))	
+		system(paste("ln -fs ",bowtieDirLocation,"/bowtie-inspect ", binDir, "/bowtie-inspect", sep=""))
+		
+		system(paste("chmod +x ",bowtie2DirLocation, "/bowtie2", sep=""))
+		system(paste("ln -fs ",bowtie2DirLocation,"/bowtie2 ", binDir, "/bowtie2", sep=""))
+		system(paste("chmod +x ",bowtie2DirLocation, "/bowtie2-build", sep=""))
+		system(paste("ln -fs ",bowtie2DirLocation,"/bowtie2-build ", binDir, "/bowtie2-build", sep=""))
+		system(paste("chmod +x ",bowtie2DirLocation, "/bowtie2-inspect", sep=""))
+		system(paste("ln -fs ",bowtie2DirLocation,"/bowtie2-inspect ", binDir, "/bowtie2-inspect", sep=""))	
+	    			
 	    system(paste("chmod +x ",samtoolsDirLocation, "/samtools", sep=""))
 		system(paste("ln -fs ",samtoolsDirLocation,"/samtools ", binDir, "/samtools", sep=""))
 	    system(paste("chmod +x ",tophatDirLocation, "/bam2fastx", sep=""))
@@ -88,16 +109,29 @@ tophatInstallation <- function(binDir, os=c("unix","mac")){
 		bowtieDirLocation  <- paste(.path.package("chimera", quiet = FALSE), "/bowtie", sep="")
 		tmp.info <- dir(paste(.path.package("chimera", quiet = FALSE)))
 		if(length(grep("bowtie", tmp.info))>0){
-		unlink(bowtieDirLocation, recursive = T, force = T)
+		   unlink(bowtieDirLocation, recursive = T, force = T)
+	    }
+	    if(length(grep("bowtie2", tmp.info))>0){
+		    unlink(bowtie2DirLocation, recursive = T, force = T)
 	    }
 		dir.create(bowtieDirLocation, showWarnings = TRUE, recursive = FALSE)
 		setwd(bowtieDirLocation)
 		cat("\nBegin downloads of bowtie.....\n")
-		download.file("http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.9/bowtie-0.12.9-macos-10.6-x86_64.zip/download", "bowtie.zip", mode="wb")
+		download.file("http://sourceforge.net/projects/bowtie-bio/files/bowtie/1.0.0/bowtie-1.0.0-macos-x86_64.zip/download", "bowtie.zip", mode="wb")
 		unzip("bowtie.zip")
-        cat("\nThe Bowtie downloaded version is bowtie_0_12_9\n")
-        system("cp -fR ./bowtie-0.12.9/* .")
-        system("rm -fR ./bowtie-0.12.9/")
+        cat("\nThe Bowtie downloaded version is bowtie_1_0_0\n")
+        system("cp -fR ./bowtie-1.0.0/* .")
+        system("rm -fR ./bowtie-1.0.0/")
+
+		dir.create(bowtie2DirLocation, showWarnings = TRUE, recursive = FALSE)
+		setwd(bowtie2DirLocation)
+		cat("\nBegin downloads of bowtie2.....\n")
+		download.file("http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.1.0/bowtie2-2.1.0-macos-x86_64.zip/download", "bowtie.zip", mode="wb")
+		unzip("bowtie.zip")
+        cat("\nThe Bowtie downloaded version is bowtie_2_1_0\n")
+        system("cp -fR ./bowtie-2.1.0/* .")
+        system("rm -fR ./bowtie-2.1.0/")
+
 		tophatDirLocation  <- paste(.path.package("chimera", quiet = FALSE), "/tophat", sep="")
 		if(length(grep("tophat", tmp.info))>0){
 		unlink(tophatDirLocation, recursive = T, force = T)
@@ -130,6 +164,13 @@ tophatInstallation <- function(binDir, os=c("unix","mac")){
 		system(paste("ln -fs ",bowtieDirLocation,"/bowtie-build ", binDir, "/bowtie-build", sep=""))
 		system(paste("chmod +x ",bowtieDirLocation, "/bowtie-inspect", sep=""))
 		system(paste("ln -fs ",bowtieDirLocation,"/bowtie-inspect ", binDir, "/bowtie-inspect", sep=""))	
+		
+		system(paste("chmod +x ",bowtie2DirLocation, "/bowtie2", sep=""))
+		system(paste("ln -fs ",bowtie2DirLocation,"/bowtie2 ", binDir, "/bowtie2", sep=""))
+		system(paste("chmod +x ",bowtie2DirLocation, "/bowtie2-build", sep=""))
+		system(paste("ln -fs ",bowtie2DirLocation,"/bowtie2-build ", binDir, "/bowtie2-build", sep=""))
+		system(paste("chmod +x ",bowtie2DirLocation, "/bowtie2-inspect", sep=""))
+		
 	    system(paste("chmod +x ",samtoolsDirLocation, "/samtools", sep=""))
 		system(paste("ln -fs ",samtoolsDirLocation,"/samtools ", binDir, "/samtools", sep=""))
 	    system(paste("chmod +x ",tophatDirLocation, "/bam2fastx", sep=""))
@@ -175,7 +216,7 @@ tophatInstallation <- function(binDir, os=c("unix","mac")){
 	
 }
 
-tophatRun <- function(input1, input2, output,cores=1, bowtie= "bowtie", tophat= "tophat",ebwt=paste(getwd(),"mychimera.fa",sep="/"), alignment=c("se","pe"))
+tophatRun <- function(input1, input2, output,cores=1, bowtie= c("bowtie","bowtie2"), tophat= "tophat",ebwt=paste(getwd(),"mychimera.fa",sep="/"), alignment=c("se","pe"))
 {
            check.tophat <- system("tophat 2>&1", intern=T)
 #           if(length(grep("Error",check.tophat[[1]])) > 0){
@@ -192,24 +233,42 @@ tophatRun <- function(input1, input2, output,cores=1, bowtie= "bowtie", tophat= 
 	            return()
            }
            #building bowtie db
-           check.bowtie <- system("bowtie 2>&1", intern=T)
-#		   if(length(grep("bowtie", check.bowtie[3])) == 0){
-	       if(length(as.character(check.bowtie)) == 0){
+           if(bowtie=="bowtie"){
+              check.bowtie <- system("bowtie 2>&1", intern=T)
+	          if(length(as.character(check.bowtie)) == 0){
 	            cat("\nIt seems that bowtie is not installed in your system:\n")
 	            cat("please install it using the function: tophatInstallation")
 	            return()
-           }
+              }
+           }else if(bowtie=="bowtie2"){
+	              check.bowtie <- system("bowtie2 2>&1", intern=T)
+		          if(length(as.character(check.bowtie)) == 0){
+		            cat("\nIt seems that bowtie2 is not installed in your system:\n")
+		            cat("please install it using the function: tophatInstallation")
+		            return()
+	              }
+	       }
            chimera.db <- paste("chimeraDB",gsub("[' '| :]","-", date()),sep="_")
            system(paste("nohup ",bowtie,"-build"," ", ebwt, " ", chimera.db,sep=""), wait=T)
            tmp.bam <- paste("tmp",gsub("[' '| :]","-", date()),sep="_")
            cat("\nMapping ", input1, input2, "\n")
-           if(alignment=="se"){
-	          tophat.run <- paste("nohup ",tophat," --bowtie1 -r 120 -a 12 --solexa-quals -p ",cores," --library-type fr-unstranded  -o ", output, " ", chimera.db, " ", input1, ",", input2,sep="")
-              system(tophat.run, wait=F)
-           }else if(alignment=="pe"){
-	          tophat.run <- paste("nohup ",tophat," --bowtie1 -r 120 -a 12 --solexa-quals -p ",cores," --library-type fr-unstranded  -o ", output, " ", chimera.db, " ", input1, " ", input2,sep="")
-              system(tophat.run, wait=F)
-           }
+           if(bowtie=="bowtie"){
+               if(alignment=="se"){
+	               tophat.run <- paste("nohup ",tophat," --bowtie1 -r 120 -a 12 --solexa-quals -p ",cores," --library-type fr-unstranded  -o ", output, " ", chimera.db, " ", input1, ",", input2,sep="")
+                   system(tophat.run, wait=F)
+               }else if(alignment=="pe"){
+	               tophat.run <- paste("nohup ",tophat," --bowtie1 -r 120 -a 12 --solexa-quals -p ",cores," --library-type fr-unstranded  -o ", output, " ", chimera.db, " ", input1, " ", input2,sep="")
+                   system(tophat.run, wait=F)
+               }
+           }else if(bowtie=="bowtie2"){
+	               if(alignment=="se"){
+		               tophat.run <- paste("nohup ",tophat," -r 120 -a 12 --solexa-quals -p ",cores," --library-type fr-unstranded  -o ", output, " ", chimera.db, " ", input1, ",", input2,sep="")
+	                   system(tophat.run, wait=F)
+	               }else if(alignment=="pe"){
+		               tophat.run <- paste("nohup ",tophat," -r 120 -a 12 --solexa-quals -p ",cores," --library-type fr-unstranded  -o ", output, " ", chimera.db, " ", input1, " ", input2,sep="")
+	                   system(tophat.run, wait=F)
+	               }
+	       }
            cat("\nTopHat is running in background\n")
 }
 
