@@ -1,5 +1,6 @@
 
 tophatInstallation <- function(binDir, os=c("unix","mac")){
+    .Deprecated(old="tophatInstallation",new="subreadRun", package="chimera")
 	mydir <- getwd()
 	if(os=="unix"){
 		bowtieDirLocation  <- paste(.path.package("chimera", quiet = FALSE), "/bowtie", sep="")
@@ -218,6 +219,7 @@ tophatInstallation <- function(binDir, os=c("unix","mac")){
 
 tophatRun <- function(input1, input2, output,cores=1, bowtie= c("bowtie","bowtie2"), tophat= "tophat",ebwt=paste(getwd(),"mychimera.fa",sep="/"), alignment=c("se","pe"))
 {
+           .Deprecated(old="tophatRun",new="subreadRun", package="chimera")
            check.tophat <- system("tophat 2>&1", intern=T)
 #           if(length(grep("Error",check.tophat[[1]])) > 0){
 	        if(length(as.character(check.tophat)) == 0){
@@ -271,5 +273,9 @@ tophatRun <- function(input1, input2, output,cores=1, bowtie= c("bowtie","bowtie
 	       }
            cat("\nTopHat is running in background\n")
 }
+
+
+
+
 
 
