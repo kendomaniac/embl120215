@@ -33,9 +33,9 @@ processing it}
 \section{Methods}{
   Standard generic methods:
   \describe{
-  \item{fusionData (fSet)}{An accessor function used to retrieve information for a fusion}
-  \item{fusionGRL (fSet)}{An accessor function used to retrieve GRangesList encompassing fusion locations for gene 1 and 2}
-  \item{fusionRNA (fSet)}{An accessor function used to extract the DNAStringSet}
+  \item{fusionData(fSet)}{An accessor function used to retrieve information for a fusion}
+  \item{fusionGRL(fSet)}{An accessor function used to retrieve GRangesList encompassing fusion locations for gene 1 and 2}
+  \item{fusionRNA(fSet)}{An accessor function used to extract the DNAStringSet}
   \item{addRNA(fSet, rna)}{An accessor function used to add the DNAStringSet to the fset object}
   \item{fusionGA(fSet)}{An accessor function used to extract the GAlignments object}
   \item{addGA(fSet, bam)}{An accessor function used to add the GAlignments object to the fSet object}

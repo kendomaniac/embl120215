@@ -85,7 +85,8 @@ importFusionData <- function(format, filename, ...)
 		#creating object
 	 #   fusionreads.loc <- fusionreads.loc[[1]]            	
 	    fusionList <- list()
-	    for(i in 1:dim(report)[1]){
+	for(i in 1:dim(report)[1]){
+	  if(as.character(report$FusionJunctionSequence[i])!=""){	
 		 strand1 <- NULL
 		 strand2 <- NULL
 		 if(report$Strand[i] == as.character("++")) {strand1 <- "+"; strand2 <- "+"}
@@ -95,45 +96,8 @@ importFusionData <- function(format, filename, ...)
 
 		 fs.tmp <- strsplit(as.character(report$FusionJunctionSequence[i]),"[a-z]")
 		 fs.1 <- fs.tmp[[1]][1]
-#this part of the code was used to see if any inconsistence exists between output of the finder and the genome used in the analysis
-#		 inconsistence <- ""
-#		 if(org=="hs"){
-#			grG1.tmp <-  GRanges(seqnames = paste("chr",report$Chromosome1[i],sep=""),
-#			            ranges = IRanges(start = (report$Position1[i] - 5000), end= (report$Position1[i] + 5000)))
-#		    seq1.tmp <- getSeq(Hsapiens, grG1.tmp)
-#		    align1.tmpr <- pairwiseAlignment(seq1.tmp,reverseComplement(DNAString(fs.1)), type = "local")
-#		    align1.tmp <- pairwiseAlignment(seq1.tmp,DNAString(fs.1), type = "local")
-#		    if(nchar(pattern(align1.tmp)) == nchar(fs.1)){
-#			      g1.end <- (report$Position1[i] - 5000) + start(pattern(align1.tmp))
-#		    }else if(nchar(pattern(align1.tmpr)) == nchar(fs.1)){
-#			      g1.end <- (report$Position1[i] - 5000) + start(pattern(align1.tmpr))
-#		    }else{
-#			     cat("\nThere is inconsistence between the sequence detected as gene1 end and the hg19 sequence\n
-#			             A * will be added near the gene1 name to remind this criticality")
-#			     inconsistence <- "*"
-#		    }
-#		 }
 		 fs.tmp <- strsplit(as.character(report$FusionJunctionSequence[i]),"[A-Z]")
 		 fs.2 <- fs.tmp[[1]][length(fs.tmp[[1]])]
-#this part of the code was used to see if any inconsistence exists between output of the finder and the genome used in the analysis
-#		 inconsistence <- ""
-#		 if(org=="hs"){
-#			grG2.tmp <-  GRanges(seqnames = paste("chr",report$Chromosome2[i],sep=""),
-#						ranges = IRanges(start = (report$Position2[i] - 5000), end= (report$Position2[i] + 5000)))
-#			seq2.tmp <- getSeq(Hsapiens, grG2.tmp)
-#			align2.tmpr <- pairwiseAlignment(seq2.tmp,reverseComplement(DNAString(fs.2)), type = "local")
-#			align2.tmp <- pairwiseAlignment(seq2.tmp,DNAString(fs.2), type = "local")
-#			if(nchar(pattern(align2.tmp)) == nchar(fs.2)){
-#						g2.start <- (report$Position2[i] - 5000) + start(pattern(align2.tmp))
-#			}else if(nchar(pattern(align2.tmpr)) == nchar(fs.2)){
-#						g2.start <- (report$Position2[i] - 5000) + start(pattern(align2.tmpr))
-#			}else{
-#					    cat("\nThere is inconsistence between the sequence detected as gene2 start and the hg19 sequence\n
-#						             A * will be added near the gene2 name to remind this criticality")
-#					inconsistence <- "*"
-#		    }
-#		 }
-		
 		 #detecting genes involved in fusions
 		
          grG1 <-  GRanges(seqnames = paste("chr",report$Chromosome1[i],sep=""),
@@ -214,7 +178,8 @@ importFusionData <- function(format, filename, ...)
 		                                 frameShift=as.character(report$FrameShift[i])
 		)
 		fusionList[[i]] <- new("fSet",fusionInfo=fusionData,fusionLoc=grl, fusionRNA=new("DNAStringSet"))		             
-	   }
+     }
+	}
 	   return(fusionList)
 }
 
@@ -1252,6 +1217,28 @@ importFusionData <- function(format, filename, ...)
 	        }
 		    report <- read.table(fusion.report, sep="\t", header=F)
 		    names(report) <- c("gene1.chr","gene1.start", "gene1.strand", "gene2.chr","gene2.start", "gene2.strand","junction.type","repeat.left","repeat.right","reads.name","first.aligned.read1","read1.cigar","first.aligned.read2","read2.cigar")
+            #removing chrM
+            if(length(which(as.character(report$gene1.chr)=="chrM"))>0){
+	             cat("\nchrM is removed from fusion acceptor\n")
+            }
+            report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$gene1.chr)=="chrM")),]
+            if(length(which(as.character(report$gene2.chr)=="chrM"))>0){
+	             cat("\nchrM is removed from fusion donor\n")
+            }
+            report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$gene2.chr)=="chrM")),]
+            #removing non canonical chrs
+            chr.g1.l <- sapply(as.character(report$gene1.chr), nchar)
+            if(length(which(as.numeric(chr.g1.l) > 5)) >0){
+	                 removed <- as.character(unique(report$gene1.chr[which(as.numeric(chr.g1.l) > 5)]))
+	                 cat("\nThe following chrs were removed from fusion acceptor:\n",removed,"\n")
+            }
+            report <- report[which(as.numeric(chr.g1.l) <= 5),]
+            chr.g2.l <- sapply(as.character(report$gene2.chr), nchar)
+            if(length(which(as.numeric(chr.g2.l) > 5)) >0){
+	                 removed <- as.character(unique(report$gene2.chr[which(as.numeric(chr.g2.l) > 5)]))
+	                 cat("\nThe following chrs were removed from fusion donor:\n",removed,"\n")
+            }
+            report <- report[which(as.numeric(chr.g2.l) <= 5),]
 
             r1.gr <- GRanges(seqnames = as.character(report$gene1.chr), 
                               ranges = IRanges(start = as.numeric(report$first.aligned.read1), 
@@ -1259,7 +1246,6 @@ importFusionData <- function(format, filename, ...)
             r2.gr <- GRanges(seqnames = as.character(report$gene2.chr), 
                               ranges = IRanges(start = as.numeric(report$first.aligned.read2), 
                               end= as.numeric(report$first.aligned.read2)),  cigar=as.character(report$read2.cigar), junction.type=as.numeric(report$junction.type))
-            
             spanning <- which(elementMetadata(r1.gr)$junction.type != -1)
 			r1r2.span <- setdiff(seq(1,length(r1.gr)), spanning) #location of spanning reads
 			###da qui			
@@ -1309,12 +1295,12 @@ importFusionData <- function(format, filename, ...)
             tmp.loc.counts.span <- tmp.loc.counts.span[which(names(tmp.loc.counts.span)%in%names(tmp.loc.counts))]
 
             tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
-            mt <- grep("MT:", tmp.loc.counts)
-            tmp.loc.counts <- tmp.loc.counts[setdiff(seq(1, length(tmp.loc.counts)),mt)]
+    #        mt <- grep("MT:", tmp.loc.counts)
+    #        tmp.loc.counts <- tmp.loc.counts[setdiff(seq(1, length(tmp.loc.counts)),mt)]
             
             tmp.loc.counts.span <- paste(names(tmp.loc.counts.span), tmp.loc.counts.span, sep="_")
-            mt <- grep("MT:", tmp.loc.counts.span)
-            tmp.loc.counts.span <- tmp.loc.counts.span[setdiff(seq(1, length(tmp.loc.counts.span)),mt)]
+   #         mt <- grep("MT:", tmp.loc.counts.span)
+   #         tmp.loc.counts.span <- tmp.loc.counts.span[setdiff(seq(1, length(tmp.loc.counts.span)),mt)]
 
 
 		#	fusionreads.loc <- new("GAlignments")
@@ -1367,35 +1353,62 @@ importFusionData <- function(format, filename, ...)
 			
 			if(parallel){
 	             fusionList <- bplapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+	             isfset <- sapply(fusionList, is.fSet)
+	             fusionList <- fusionList[isfset]
 	             fusionList.span <- bplapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+	             isfset <- sapply(fusionList.span, is.fSet)
+	             fusionList.span <- fusionList.span[isfset]
 	             counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=T)
 	             names.span <- fusionName(fusionList.span, parallel=T)
 	             names(counts.span) <- names.span
 	             names.all <- fusionName(fusionList, parallel=T)
 	             which.all <- which(names.all %in% names.span)
-                save(fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
+	             #for test purposes
+    #            save(tmp.loc.counts,tmp.loc.counts.span,fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
+	             #
 	             for(i in 1:length(which.all)){
 		              seed.span <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
 		              if(length(seed.span)==1){
 		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span
-	                  }else{
-		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
-	                  }
+	                  }else if(length(seed.span)>1){
+			                     seed.span <- seed.span[!is.na(seed.span)]
+			                     if(length(seed.span)>0){
+			                          fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
+		                         }else{
+			                          fusionList[[i]]@fusionInfo$SeedCount <- NA
+		                         }
+		              }else{
+			                     fusionList[[i]]@fusionInfo$SeedCount <- NA
+		              }
 	             }
 	        }else{ 
                  fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
+	             isfset <- sapply(fusionList, is.fSet)
+	             fusionList <- fusionList[isfset]
                  fusionList.span <- lapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
+	             isfset.span <- sapply(fusionList.span, is.fSet)
+	             fusionList.span <- fusionList.span[isfset.span]
                  counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=F)
                  names.span <- fusionName(fusionList.span, parallel=F)
                  names(counts.span) <- names.span
                  names.all <- fusionName(fusionList, parallel=F)
                  which.all <- which(names.all %in% names.span)
-	             for(i in 1:length(which.all)){
+	             #for test purposes
+   #            save(tmp.loc.counts,tmp.loc.counts.span,fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
+	            #
+	            for(i in 1:length(which.all)){
 		              seed.span <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
 		              if(length(seed.span)==1){
 		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span
+	                  }else if(length(seed.span)>1){
+		                     seed.span <- seed.span[!is.na(seed.span)]
+		                     if(length(seed.span)>0){
+		                          fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
+	                         }else{
+		                          fusionList[[i]]@fusionInfo$SeedCount <- NA
+	                         }
 	                  }else{
-		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
+		                     fusionList[[i]]@fusionInfo$SeedCount <- NA
 	                  }
 	             }
             }
