@@ -1356,13 +1356,22 @@ importFusionData <- function(format, filename, ...)
 	             isfset <- sapply(fusionList, is.fSet)
 	             fusionList <- fusionList[isfset]
 	             fusionList.span <- bplapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
-	             isfset <- sapply(fusionList.span, is.fSet)
-	             fusionList.span <- fusionList.span[isfset]
-	             counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=T)
-	             names.span <- fusionName(fusionList.span, parallel=T)
-	             names(counts.span) <- names.span
-	             names.all <- fusionName(fusionList, parallel=T)
-	             which.all <- which(names.all %in% names.span)
+                 if(length(fusionList.span)>0){
+	                 isfset <- sapply(fusionList.span, is.fSet)
+	                 fusionList.span <- fusionList.span[isfset]
+	                 counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=T)
+		             names.span <- fusionName(fusionList.span, parallel=T)
+		             names(counts.span) <- names.span
+		             names.all <- fusionName(fusionList, parallel=T)
+		             which.all <- which(names.all %in% names.span)
+                 }else{
+	                 fusionList.span <- fusionList
+	                 counts.span <- rep(0, length(fusionList.span))
+		             names.span <- fusionName(fusionList.span, parallel=T)
+		             names(counts.span) <- names.span
+		             names.all <- fusionName(fusionList, parallel=T)
+		             which.all <- which(names.all %in% names.span)
+                 }
 	             #for test purposes
     #            save(tmp.loc.counts,tmp.loc.counts.span,fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
 	             #
@@ -1386,13 +1395,22 @@ importFusionData <- function(format, filename, ...)
 	             isfset <- sapply(fusionList, is.fSet)
 	             fusionList <- fusionList[isfset]
                  fusionList.span <- lapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
-	             isfset.span <- sapply(fusionList.span, is.fSet)
-	             fusionList.span <- fusionList.span[isfset.span]
-                 counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=F)
-                 names.span <- fusionName(fusionList.span, parallel=F)
-                 names(counts.span) <- names.span
-                 names.all <- fusionName(fusionList, parallel=F)
-                 which.all <- which(names.all %in% names.span)
+                 if(length(fusionList.span)>0){
+	                 isfset <- sapply(fusionList.span, is.fSet)
+	                 fusionList.span <- fusionList.span[isfset]
+	                 counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=F)
+		             names.span <- fusionName(fusionList.span, parallel=F)
+		             names(counts.span) <- names.span
+		             names.all <- fusionName(fusionList, parallel=F)
+		             which.all <- which(names.all %in% names.span)
+                 }else{
+	                 fusionList.span <- fusionList
+	                 counts.span <- rep(0, length(fusionList.span))
+		             names.span <- fusionName(fusionList.span, parallel=F)
+		             names(counts.span) <- names.span
+		             names.all <- fusionName(fusionList, parallel=F)
+		             which.all <- which(names.all %in% names.span)
+                 }
 	             #for test purposes
    #            save(tmp.loc.counts,tmp.loc.counts.span,fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
 	            #

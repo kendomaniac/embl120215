@@ -20,7 +20,7 @@ In case the fusion junction is located in an intronic sequence, a warning is pro
 	fusion.names
 	myset <- tmp[[13]]
 	tmp.seq <- chimeraSeqs(myset, type="transcripts")
-	#write.XStringSet(tmp.seq, paste(sub(":","_",fusion.names[[13]]),".fa",sep=""), format="fasta")
+	#writeXStringSet(tmp.seq, paste(sub(":","_",fusion.names[[13]]),".fa",sep=""), format="fasta")
 }
 
 \seealso{\code{\link{fusionName}}}
