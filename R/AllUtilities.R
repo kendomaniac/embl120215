@@ -259,9 +259,11 @@ filterSamReads <- function(input, output, filter=c("includeAligned","excludeAlig
     }
     picardDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/picard", sep="")
     tmp <- paste("tmp",gsub("[' '| :]","-", date()),sep="_")
-	system(paste("java -jar ",picardDirLocation,"/SortSam.jar SORT_ORDER=queryname INPUT=",input," OUTPUT=",paste(tmp,".sam",sep=""),sep=""), wait=T)
-	system(paste("java -jar ",picardDirLocation,"/FilterSamReads.jar SORT_ORDER=queryname FILTER=",filter," INPUT=",paste(tmp,".sam",sep="")," OUTPUT=",output,sep=""), wait=T)
-    cat("SAM filtering is running in background.")
+#	system(paste("java -jar ",picardDirLocation,"/SortSam.jar VALIDATION_STRINGENCY=SILENT SORT_ORDER=queryname INPUT=",input," OUTPUT=",paste(tmp,".sam",sep=""),sep=""), wait=T)
+#	system(paste("java -jar ",picardDirLocation,"/FilterSamReads.jar VALIDATION_STRINGENCY=SILENT SORT_ORDER=unsorted FILTER=",filter," INPUT=",paste(tmp,".sam",sep="")," OUTPUT=",output,sep=""), wait=T)
+    system(paste("java -jar ",picardDirLocation,"/FilterSamReads.jar VALIDATION_STRINGENCY=SILENT SORT_ORDER=unsorted FILTER=",filter," INPUT=",input," OUTPUT=",output,sep=""), wait=F)
+ 
+   cat("SAM filtering is running in background.")
 	return(output)
 }
 ##

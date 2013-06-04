@@ -113,10 +113,13 @@ The function \textit{tophatRun} maps reads to a chimera sequence set, eg. \texti
 <<>>==
 #the DNAStringSet of transcript fusions sequences is saved as fast file
 #write.XStringSet(trs, paste("SULF2_ARFGEF2.fa",sep=""), format="fasta")
-subreadRun(ebwt=paste(find.package(package="chimera"),"/examples/SULF2_ARFGEF2.fa",sep=""),  
-input1=paste(find.package(package="chimera"),"/examples/mcf7_sample_1.fq",sep=""), 
-input2=paste(find.package(package="chimera"),"/examples/mcf7_sample_2.fq",sep=""),  
-outfile.prefix="accepted_hits", alignment="se", cores=1)
+if (require(Rsubread))
+{
+    subreadRun(ebwt=paste(find.package(package="chimera"),"/examples/SULF2_ARFGEF2.fa",sep=""),  
+    input1=paste(find.package(package="chimera"),"/examples/mcf7_sample_1.fq",sep=""), 
+    input2=paste(find.package(package="chimera"),"/examples/mcf7_sample_2.fq",sep=""),  
+    outfile.prefix="accepted_hits", alignment="se", cores=1)
+}
 @
 
 The function \textit{filterList} allows to filter a list of fSet objects on the basis of supporting reads or fusion names or presence of intronic sequence in the fusion. The rational of filtering on the basis of supporting reads is that  biological effect also depends on the amount of the expressed mRNA, thus highly expressed fusions, i.e. fusions with an high number of junction-spanning reads, might have a more important role in cancer physiology. On the other hand the presence e of an intron in a fusion generates a very large transcript, which do not produce in frame transcripts.
