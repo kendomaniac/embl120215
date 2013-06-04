@@ -212,5 +212,59 @@ starReads <- function(fusion.report, parallel=FALSE){
 		    reads.gr <- GRangesList(r1.gr, r2.gr)
 		    return(reads.gr)
 }            
+###
+picardInstallation <- function(){
+	    mydir <- getwd()
+		picardDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/picard", sep="")
+		tmp.info <- dir(paste(path.package("chimera", quiet = FALSE)))
+		if(length(grep("picard", tmp.info))>0){
+		   unlink(picardDirLocation, recursive = T, force = T)
+	    }
+		dir.create(picardDirLocation, showWarnings = TRUE, recursive = FALSE)
+		setwd(picardDirLocation)
+		cat("\nBegin downloads of picard.....\n")
+		download.file("http://sourceforge.net/projects/picard/files/picard-tools/1.92/picard-tools-1.92.zip/download", "picard.zip", mode="wb")
+        cat("\nThe picard downloaded version is picard-tools-1.92\n")
+        system(paste("unzip picard.zip", sep=""))
+        system("cp -fR ./picard-tools-1.92/* .")
+        system("rm -fR ./picard-tools-1.92/")
+        system("chmod +x *")
+        setwd(mydir)
+        return()
+}
+###
+validateSamFile <- function(input, output, mode=c("VERBOSE", "SUMMARY"), max.output="100"){
+	tmp.info <- dir(paste(path.package("chimera", quiet = FALSE)))
+	if(length(grep("picard", tmp.info))==0){
+	   cat("\nIt seems that picard tools are not installed on chimera package path. \nPlease use picardInstallation() for picard tools installation\n")
+       return()
+    }
+    picardDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/picard", sep="")
+	system(paste("java -jar ",picardDirLocation,"/ValidateSamFile.jar IGNORE_WARNINGS=true MAX_OUTPUT=",max.output," INPUT=",input," OUTPUT=",output,sep=""), wait=F)
+    cat("SAM validation is running in background.")
+	return(output)
+}
+##
+removingErrorLine <- function(line.number, filenameIn, filenameOut){
+	myline <- paste(" \'",line.number,"d\' " ,sep="")
+	system(paste("sed ", myline, filenameIn," > ", filenameOut, sep=""), wait=F)
+	cat("\nError line removal is running in background.\n")
+}
+##
+filterSamReads <- function(input, output, filter=c("includeAligned","excludeAligned")){
+	tmp.info <- dir(paste(path.package("chimera", quiet = FALSE)))
+	if(length(grep("picard", tmp.info))==0){
+	   cat("\nIt seems that picard tools are not installed on chimera package path. \nPlease use picardInstallation() for picard tools installation\n")
+       return()
+    }
+    picardDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/picard", sep="")
+    tmp <- paste("tmp",gsub("[' '| :]","-", date()),sep="_")
+	system(paste("java -jar ",picardDirLocation,"/SortSam.jar SORT_ORDER=queryname INPUT=",input," OUTPUT=",paste(tmp,".sam",sep=""),sep=""), wait=T)
+	system(paste("java -jar ",picardDirLocation,"/FilterSamReads.jar SORT_ORDER=queryname FILTER=",filter," INPUT=",paste(tmp,".sam",sep="")," OUTPUT=",output,sep=""), wait=T)
+    cat("SAM filtering is running in background.")
+	return(output)
+}
+##
+
 
 

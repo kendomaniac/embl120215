@@ -10,6 +10,13 @@ NEW FEATURES
      filterList
 Changes in version 1.3.9:
    Rsubread aligner is used instead of tophat. 
+Changes in version 1.3.12:
+   Picard-tools can be downloaded in chimara folder, picardInstallation.
+   The wrapper function validateSamFile uses picard tools to validate SAM/BAM files.
+   The wrapper function filterSamReads allows SAM and BAM filtering.
+  
+   
+
 
    
     
