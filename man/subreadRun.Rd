@@ -18,11 +18,12 @@ database. The fusion nucleotide sequences can be generated with the function chi
 }
 \author{Raffaele A Calogero}
 \examples{
- #   library(Rsubread)
- #	subreadRun(ebwt=paste(find.package(package="chimera"),"/examples/SULF2_ARFGEF2.fa",sep=""), 
- #	input1=paste(find.package(package="chimera"),"/examples/mcf7_sample_1.fq",sep=""), 
- #	input2=paste(find.package(package="chimera"),"/examples/mcf7_sample_2.fq",sep=""), 
- #	outfile.prefix="accepted_hits", alignment="se", cores=1)
+   if(require(Rsubread)){
+    	subreadRun(ebwt=paste(find.package(package="chimera"),"/examples/SULF2_ARFGEF2.fa",sep=""), 
+ 	    input1=paste(find.package(package="chimera"),"/examples/mcf7_sample_1.fq",sep=""), 
+ 	    input2=paste(find.package(package="chimera"),"/examples/mcf7_sample_2.fq",sep=""), 
+ 	    outfile.prefix="accepted_hits", alignment="se", cores=1)
+   }
 }
 
 \seealso{ \code{\link{chimeraSeqs}}}
