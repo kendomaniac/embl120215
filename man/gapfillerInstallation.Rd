@@ -5,7 +5,7 @@
 The source code of GapFiller can be retrieved at http://sourceforge.net/projects/gapfiller/files/?source=navbar .
 The paper describing the tool is Nadalin F, Vezzi F, Policriti A. GapFiller: a de novo assembly approach to fill the gap within paired reads. BMC Bioinformatics. 2012;13 Suppl 14:S8.  
 }
-\usage{gapfillerInstallation(os=c("unix64","mac64"))}
+\usage{gapfillerInstallation(os=c("mac64","unix64"))}
 \arguments{
   \item{os}{The supported operating systems}
 }
