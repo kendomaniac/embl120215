@@ -273,9 +273,4 @@ tophatRun <- function(input1, input2, output,cores=1, bowtie= c("bowtie","bowtie
 	       }
            cat("\nTopHat is running in background\n")
 }
-
-
-
-
-
-
+#
