@@ -1,21 +1,44 @@
-Changes in version 1.3.3:
+CHANGES IN VERSION 1.3.3
+-------------------------
+
 NEW FEATURES
-   STAR fusion import function: importFusionData
-   STAR run function: starInstallation
-   STAR installation function: starRun
-   BiocParallel supported functions:
+
+   o STAR fusion import function: importFusionData
+
+   o STAR run function: starInstallation
+
+   o STAR installation function: starRun
+
+   o BiocParallel supported functions:
      STAR import
      fusionName
      supportingReads
      filterList
-Changes in version 1.3.9:
-   Rsubread aligner is used instead of tophat. 
-Changes in version 1.3.12:
-   Picard-tools can be downloaded in chimara folder, picardInstallation.
-   The wrapper function validateSamFile uses picard tools to validate SAM/BAM files.
-   The wrapper function filterSamReads allows SAM and BAM filtering.
-Changes in version 1.3.15:
-   GapFiller Nadalin et al BMC Bioinformatics was implemented as de novo validation tool for fusion break point.
+
+CHANGES IN VERSION 1.3.9
+-------------------------
+
+NEW FEATURES
+
+   o Rsubread aligner is used instead of tophat. 
+
+CHANGES IN VERSION 1.3.12
+--------------------------
+
+NEW FEATURES
+
+   o Picard-tools can be downloaded in chimara folder, picardInstallation.
+
+   o The wrapper function validateSamFile uses picard tools to validate SAM/BAM files.
+
+   o The wrapper function filterSamReads allows SAM and BAM filtering.
+
+CHANGES IN VERSION 1.3.15
+-------------------------
+
+NEW FEATURES
+
+   o GapFiller Nadalin et al BMC Bioinformatics was implemented as de novo validation tool for fusion break point.
   
    
 
