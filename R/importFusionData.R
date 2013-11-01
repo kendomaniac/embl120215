@@ -1003,12 +1003,16 @@ importFusionData <- function(format, filename, ...)
              g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
          }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
          if(org=="hs"){
-		     fs.1 <- as.character(getSeq(Hsapiens, grG1))
-		     fs.2 <- as.character(getSeq(Hsapiens, grG2))		
+	         junctionG1 <-  GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = as.numeric(report$start5p[i]), end= as.numeric(report$end5p[i])), strand = strand1)
+	         junctionG2 <-  GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = as.numeric(report$start3p[i]), end= as.numeric(report$end3p[i])), strand = strand2)
+		     fs.1 <- as.character(getSeq(Hsapiens, junctionG1))
+		     fs.2 <- as.character(getSeq(Hsapiens, junctionG2))		
          }else if(org=="mm"){
 	         require(BSgenome.Mmusculus.UCSC.mm9) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
-		     fs.1 <- as.character(getSeq(Mmusculus, grG1))
-		     fs.2 <- as.character(getSeq(Mmusculus, grG2))			
+	         junctionG1 <-  GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = as.numeric(report$start5p[i]), end= as.numeric(report$end5p[i])), strand = strand1)
+	         junctionG2 <-  GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = as.numeric(report$start3p[i]), end= as.numeric(report$end3p[i])), strand = strand2) 
+		     fs.1 <- as.character(getSeq(Hsapiens, junctionG1))
+		     fs.2 <- as.character(getSeq(Hsapiens, junctionG2))		
          }
 		 if(length(as.character(report$transcript_ids_5p[i])) == 0){
 			tmpT1 <- NULL

@@ -159,18 +159,26 @@ supportingReads <- function(list, fusion.reads=c("all","spanning"), parallel=FAL
          p <- MulticoreParam()
          if(fusion.reads=="all"){
                 nsr <- bplapply(tmp, function(x) x@fusionInfo$RescuedCount, BPPARAM=p)
+				length.nsr <- sapply(nsr, length)
+                nsr[which(length.nsr == 0)] <- 0
                 nsr <- as.numeric(unlist(nsr))
          }else if(fusion.reads=="spanning"){
 	            nsr <- bplapply(tmp, function(x) x@fusionInfo$SeedCount, BPPARAM=p)
+				length.nsr <- sapply(nsr, length)
+                nsr[which(length.nsr == 0)] <- 0
 	            nsr <- as.numeric(unlist(nsr))
 	     }
     }else{
-	    if(fusion.reads=="all"){ 
+	    if(fusion.reads=="all"){
                 nsr <- sapply(tmp, function(x) x@fusionInfo$RescuedCount)
-		        nsr <- as.numeric(nsr)
+				length.nsr <- sapply(nsr, length)
+                nsr[which(length.nsr == 0)] <- 0
+				nsr <- as.numeric(unlist(nsr))
 	    }else if(fusion.reads=="spanning"){ 
 			    nsr <- sapply(tmp, function(x) x@fusionInfo$SeedCount)
-			    nsr <- as.numeric(nsr)
+				length.nsr <- sapply(nsr, length)
+                nsr[which(length.nsr == 0)] <- 0
+				nsr <- as.numeric(unlist(nsr))
 	    }
     }
 	return(nsr)	
@@ -267,6 +275,34 @@ filterSamReads <- function(input, output, filter=c("includeAligned","excludeAlig
 	return(output)
 }
 ##
+prettyPrint <- function(list, filename, fusion.reads=c("all","spanning")){
+	all <- supportingReads(list, fusion.reads, parallel=FALSE)
+    fusions.des <- sapply(list, function(x){
+        chr.1 <- as.character(seqnames(fusionGRL(x)$gene1))
+        chr.2 <- as.character(seqnames(fusionGRL(x)$gene2))
+        end.1 <- end(fusionGRL(x)$gene1)
+        strand.1 <- strand(fusionGRL(x)$gene1)
+        start.2 <- start(fusionGRL(x)$gene2)
+        strand.2 <- strand(fusionGRL(x)$gene2)
+        gene1 <- elementMetadata(fusionGRL(x)$gene1)$KnownGene
+        gene2 <- elementMetadata(fusionGRL(x)$gene2)$KnownGene
+        trs1 <- elementMetadata(fusionGRL(x)$gene1)$KnownTranscript
+        trs2 <- elementMetadata(fusionGRL(x)$gene2)$KnownTranscript
+        junction1 <- elementMetadata(fusionGRL(x)$gene1)$FusionJunctionSequence
+        junction2 <- elementMetadata(fusionGRL(x)$gene2)$FusionJunctionSequence
+        junction <- paste(junction1, junction2, sep="")
+        tmp <- paste(gene1, chr.1, end.1, strand.1, trs1, gene2, chr.2, start.2, strand.2, trs2, junction, sep="|")
+    })
+    fusions.des <- strsplit(fusions.des, "\\|")
+    fusions.des <- as.data.frame(fusions.des)
+    dimnames(fusions.des)[[1]] <-   c("gene1","chr.gene1","breakpoint.gene1", "strand.gene1","transcripts.gene1","gene2","chr.gene2","breakpoint.gene2","strand.gene2","transcripts.gene2","fusion.breakpoint")
+    fusions.des <- t(fusions.des)
+    fusions.des <- cbind(fusions.des, all)
+    dimnames(fusions.des)[[2]] <- c("gene1","chr.gene1","breakpoint.gene1", "strand.gene1","transcripts.gene1","gene2","chr.gene2","breakpoint.gene2","strand.gene2","transcripts.gene2","fusion.breakpoint","supporting.reads")
+    write.table(fusions.des, filename, sep="\t", row.names=F)
+    return(paste("Fusion information is saved in ", filename, sep=""))
+}
+
 
 
 

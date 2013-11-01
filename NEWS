@@ -42,6 +42,11 @@ NEW FEATURES
   
    
 
+CHANGES IN VERSION 1.5.2
+-------------------------
 
+NEW FEATURES
+
+   o prettyPrint function was added to generate a table delimited file output form a list of fSet objects.
    
     
