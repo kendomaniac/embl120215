@@ -1,4 +1,3 @@
-importFrom(GenomicRanges, GAlignments)
 importFrom(AnnotationDbi,as.list)
 import(BSgenome.Hsapiens.UCSC.hg19)
 import(Biobase)
