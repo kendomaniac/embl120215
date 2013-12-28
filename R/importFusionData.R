@@ -938,6 +938,11 @@ importFusionData <- function(format, filename, ...)
 	    report <- read.table(fusion.report, sep="\t", header=F)
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
 		report <- report[which(as.numeric(report$spanning_frags) > min.support),]
+        cat(paste("\n",dim(report)[1]," detected fusions\n",sep=""))
+		if(dim(report)[1]==0){
+			cat(paste("\n",dim(report)[1]," fusions supported by at least ",min.support," spanning reads",sep=""))
+			return()
+		}
 	#	fusionreads.loc <- new("GAlignments")
 	if(org=="hs"){
 	    #loading annotation
