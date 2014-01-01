@@ -19,7 +19,7 @@
 \begin{document}
 \title{Chimera}
 \author{Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero}
-\date{May 28 2013}
+\date{January 01 2014}
 \maketitle
 
 \section{Introduction}
@@ -192,6 +192,58 @@ donor.up=200, acceptor.down=200)
 mypeps
 @
 Furthermore, the output of the \textit{fusionPeptides}, provides a DNA region encompassing the fusion that can be used to be upload in Primer3, \url{http://simgene.com/Primer3}, to design the PCR primers to validated the fusion event or to obtain the region encompassing the fusion that can be cloned and sequenced with Sanger method. The parameter \textit{donor.end}, \textit{acceptor.end} allow to define the extension of the DNA fragment to be extracted, respectively upstream to the donor end and down stream the acceptor start.
+
+\section{Fusions validation}
+The tools used for the detection of fusion events are error prone and many of the detected fusions are false positive events.
+Since experimental validation is a long and realatively expensive procedure it is important to reduce as much as possible the number of false positive events. For this reason we have deviced a validation procedure based on the de novo assembly. We use the GapFiller tools,
+[Nadalin et al. BMC Bioinformatics. 2012;13 Suppl 14:S8], to perform this validation.
+GapFiller is seed-and-extend local assembler, which carefully detects reliable overlaps and operates clustering similar reads in order to reconstruct the missing part between the two ends of the same insert. Thus is perfect to see if a set of reads mapping over a putative fusion transcript are also able to de novo reconstruct the fusion junction. Below are shown the steps we suggest for the identification of a robust set of fusion events.
+\begin{Sinput}
+#importing fusion from your favorite program, e.g. ChimeraScan. 
+fusions <- importFusionData("chimerascan", 'chimeras.bedpe', org="hs")
+\end{Sinput} 
+On the basis of our work [Carrara et al BMC Bioinformatics. 2013;14 Suppl 7:S2.; Carrara et al. Biomed Res Int. 2013;2013:340620]
+the best performing fusion detection tool, between those tested, is ChimeraScan. It detectes most of the true positive events also in  the correct orientation, but brings a significant number of false positive.
+One of the experimental approaches we used to moderate the number of false positive was using a directional sequence protocol. Running chimerascan in a strand oriented mode significantly reduced the false positive events.
+\begin{Sinput}
+#retain only fusions supported by at least 1 reads 
+#spanning over the fusion junction.	
+fusions <- filterList(fusions, type="supporting.reads", 1)
+#retain only fusions encompassing coding annotated genes
+fusions <- filterList(fusions, type="annotated.genes")
+#filter fusion events to remove those including intronic sequences. 
+fusions <- filterList(fusions, type="intronic", parallel=T)
+\end{Sinput} 
+The above mentioned filtering procedure reduce significantly the number of fusions
+\begin{Sinput}
+#Generate a DNAStringSet object with the reconstruciton of the fusions left 
+#from the filtering procedure
+trsx <- chimeraSeqSet(fusions, parallel=T)
+#save the fusions as fasta file
+writeXStringSet(trsx, paste("fusions.fa",sep=""), format="fasta")
+#remap the reads initially used to detect the fusion events over 
+#the putative fusions, i.e. fusions.fa
+subreadRun(ebwt="fusions.fa", input1="sample_R1.fastq", input2="sample_R2.fastq", 
+outfile.prefix="accepted_hits", alignment="se", cores=64)
+\end{Sinput} 
+The output bam contains only the mapped reads
+\begin{Sinput}
+#Converting bam in fastq 
+bam2fastq(bam="accepted_hits.bam", filename="ready4gapfiller", parallel=T)
+\end{Sinput}
+The output are two fastq  ready4gapfiller\_R1.fastq and ready4gapfiller\_R2.fastq
+\begin{Sinput}
+#generating validation results with GapFiller
+validation.results <- lapply(trsx, function(x){
+  writeXStringSet(x, paste("fusion_tmp.fa",sep=""), format="fasta")
+  gf.out  <- gapfillerRun("fusion_tmp.fa", seed1="ready4gapfiller_R1.fastq",  
+  seed2="ready4gapfiller_R2.fastq", gapfiller=NULL, seed.ins=200, 
+  seed.var=50, block.length=5, overlap=20, max.length=5000, 
+  slack=7, k=6, global.mismatch=5, perc.identity=0.6)   
+ return(gf.out)
+})
+\end{Sinput}
+The results is a list containing PairwiseAlignments object only in case that some of de novo assemblies cover the breakpoint junction. Using Views method of PairwiseAlignments it is possible to visualise all the assemblies covering the breakpoint junction.
 
 \section{FusionMap}
 FusionMap aligns fusion reads directly to the genome without prior knowledge of potential fusion regions. FusionMap can detect fusion events in both single- and paired-end datasets from either RNA-Seq or gDNA-Seq studies and characterize fusion junctions at base-pair resolution: \url{http://www.omicsoft.com/fusionmap}

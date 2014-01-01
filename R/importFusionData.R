@@ -968,6 +968,7 @@ importFusionData <- function(format, filename, ...)
 		mychrs <- mychrs[1:24]
 		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
 	}else if(org=="mm"){
+		require(org.Mm.eg.db) || stop("\nMissing org.Mm.eg.db package\n")
 		chr.tmps <- as.list(org.Mm.egCHRLOC)
 		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
 		eg.start <- names(chr.tmps)
@@ -1337,6 +1338,7 @@ importFusionData <- function(format, filename, ...)
 			mychrs <- mychrs[1:24]
 			grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
 		}else if(org=="mm"){
+			    require(org.Mm.eg.db) || stop("\nMissing org.Mm.eg.db package\n")
 				chr.tmps <- as.list(org.Mm.egCHRLOC)
 				chr.tmps <- chr.tmps[!is.na(chr.tmps)]
 				eg.start <- names(chr.tmps)

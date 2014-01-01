@@ -304,11 +304,11 @@ prettyPrint <- function(list, filename, fusion.reads=c("all","spanning")){
 }
 
 ##
-chimeraSeqSet <- function(fusions, parallel=F){
+chimeraSeqSet <- function(list, parallel=FALSE){
    if(parallel){
 	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
          p <- MulticoreParam()
-         trs <- bplapply(fusions, function(x){
+         trs <- bplapply(list, function(x){
                 tmp <- chimeraSeqs(x, type="transcripts")
    			 tmp.names <- names(tmp)
    			 tmp <- tmp[[1]]
@@ -320,7 +320,7 @@ chimeraSeqSet <- function(fusions, parallel=F){
          trs <-DNAStringSet(trs)
          names(trs) <- as.character(trs.names)
    }else{
-      trs <- lapply(fusions, function(x){
+      trs <- lapply(list, function(x){
              tmp <- chimeraSeqs(x, type="transcripts")
 			 tmp.names <- names(tmp)
 			 tmp <- tmp[[1]]
@@ -333,6 +333,57 @@ chimeraSeqSet <- function(fusions, parallel=F){
       names(trs) <- as.character(trs.names)
    }
    return(trs)
+}
+##
+bam2fastq<- function(bam, filename="ready4gapfiller",parallel=FALSE){
+    bam <- scanBam(bam)
+    seq <- as.character(bam[[1]]$seq)
+    qual <- as.character(bam[[1]]$qual)
+    read.n <- as.character(bam[[1]]$qname)
+    names(seq) <- read.n 
+    names(qual) <- read.n 
+    seq <- seq[order(names(seq))]
+    qual <- qual[order(names(qual))]
+    rname.u <- unique(names(seq))
+    if(parallel){
+ 	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
+          p <- MulticoreParam()
+          paired <- bplapply(rname.u, function(x,y){
+   	          if(length(which(y==x)) == 2){
+   	         	return(paste(which(y==x),sep=" "))
+   	          }else{
+   	        	return(NA)
+   	          }
+          }, y=names(seq), BPPARAM=p)
+		  
+    }else{
+       paired <- sapply(rname.u, function(x,y){
+	       if(length(which(y==x)) == 2){
+	         	return(paste(which(y==x),sep=" "))
+	       }else{
+	        	return(NA)
+	       }
+       }, y=names(seq))
+   }
+	
+    paired <- paired[!is.na(paired)]
+    paired <- as.data.frame(paired)
+    paired1 <-as.numeric(as.character(unlist(paired[1,])))
+    paired2 <-as.numeric(as.character(unlist(paired[2,])))
+
+    fastq1 <- rep(NA, (length(paired1) * 4))
+    fastq1[seq(1, length(fastq1),by=4)] <- paste("@",names(seq)[paired1], sep="")
+    fastq1[seq(2, length(fastq1),by=4)] <- seq[paired1]
+    fastq1[seq(3, length(fastq1),by=4)] <- rep("+", length(seq[paired1]))
+    fastq1[seq(4, length(fastq1),by=4)] <- qual[paired1]
+    writeLines(fastq1, paste(filename,"_R1.fastq",sep=""))
+
+    fastq2 <- rep(NA, (length(paired2) * 4))
+    fastq2[seq(1, length(fastq2),by=4)] <- paste("@",names(seq)[paired2], sep="")
+    fastq2[seq(2, length(fastq2),by=4)] <- seq[paired2]
+    fastq2[seq(3, length(fastq2),by=4)] <- rep("+", length(seq[paired2]))
+    fastq2[seq(4, length(fastq2),by=4)] <- qual[paired2]
+    writeLines(fastq2, paste(filename,"_R2.fastq",sep=""))
 }
 
 

@@ -6,12 +6,12 @@ subreadRun <- function(ebwt, input1, input2, outfile.prefix="accepted_hits", ali
 		tmp.fq <- paste("tmp",gsub("[' '| :]","-", date()),sep="_")
 		system(paste("cat ",input1," ",input2," >",tmp.fq,".fastq",sep=""))
 		align(index=chimera.db,readfile1=paste(tmp.fq,".fastq", sep=""),output_file=paste(outfile.prefix,".sam",sep=""), nthreads=cores)
-#        filterSamReads(input=paste(outfile.prefix,".sam",sep=""), output=paste(outfile.prefix,"_mapped.sam",sep=""), filter="includeAligned")
-		asBam(paste(outfile.prefix,".sam",sep=""), outfile.prefix, overwrite=TRUE)
+        #        filterSamReads(input=paste(outfile.prefix,".sam",sep=""), output=paste(outfile.prefix,"_mapped.sam",sep=""), filter="includeAligned")
+		asBam(paste(outfile.prefix,".sam",sep=""), outfile.prefix, param=ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE)), overwrite=TRUE)
 	}else{
 		align(index=chimera.db,readfile1=input1,readfile2=input2,output_file=paste(outfile.prefix,".sam",sep=""), nthreads=cores)
- #       filterSamReads(input=paste(outfile.prefix,".sam",sep=""), output=paste(outfile.prefix,"_mapped.sam",sep=""), filter="includeAligned")
-		asBam(paste(outfile.prefix,".sam",sep=""), outfile.prefix, overwrite=TRUE)
+        #        filterSamReads(input=paste(outfile.prefix,".sam",sep=""), output=paste(outfile.prefix,"_mapped.sam",sep=""), filter="includeAligned")
+		asBam(paste(outfile.prefix,".sam",sep=""), outfile.prefix, param=ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE)), overwrite=TRUE)
 	}
 }
 
