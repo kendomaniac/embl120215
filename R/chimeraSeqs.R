@@ -255,5 +255,41 @@ chimeraSeqs <- function(fset, extend=1000, type="transcripts"){
 	   }
    }
 }
+###
+##
+chimeraSeqSet <- function(list, parallel=FALSE){
+   if(parallel){
+	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
+         p <- MulticoreParam()
+         trs <- bplapply(list, function(x){
+                tmp <- chimeraSeqs(x, type="transcripts")
+   			 tmp.names <- names(tmp)
+   			 tmp <- tmp[[1]]
+   			 return(list(seq=tmp, names=tmp.names))
+             }, 
+		 BPPARAM=p)
+         trs.names <- sapply(trs, function(x)x[2])
+         trs <- sapply(trs, function(x)x[1])
+         trs <-DNAStringSet(trs)
+         names(trs) <- as.character(trs.names)
+   }else{
+      trs <- lapply(list, function(x){
+             tmp <- chimeraSeqs(x, type="transcripts")
+			 tmp.names <- names(tmp)
+			 tmp <- tmp[[1]]
+			 return(list(seq=tmp, names=tmp.names))
+          }
+      )
+      trs.names <- sapply(trs, function(x)x[2])
+      trs <- lapply(trs, function(x)DNAStringSet(x[1]))
+#      trs <-DNAStringSet(trs)
+      names(trs) <- as.character(trs.names)
+	  for(i in 1:length(trs)){
+		  names(trs[[i]]) <- as.character(trs.names)[i]
+	  }
+   }
+   return(trs)
+}
+
 
 

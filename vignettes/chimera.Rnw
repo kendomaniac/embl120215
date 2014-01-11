@@ -19,7 +19,7 @@
 \begin{document}
 \title{Chimera}
 \author{Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero}
-\date{January 01 2014}
+\date{January 11 2014}
 \maketitle
 
 \section{Introduction}
@@ -185,13 +185,12 @@ The coverage at the fusion boundary, can be generated using the parameter fusion
 
 
 It is also possible to reconstruct the protein sequence involved in the fusion using the function \textit{fusionPeptides}.
-The function returns the donor and acceptor transcripts and the corresponding peptides as part of a list.
+The function a AAStringSet encompassing: fusion sequence, peptide from p1 and peptide from p2. In case the peptides are not in frame the AAStringSet will not contain the fusion sequence.
 <<>>==
-mypeps <- fusionPeptides(fset=myset, which.isoform=1, 
-donor.up=200, acceptor.down=200)
+mypeps <- fusionPeptides(chimeraSeq.output=trs)
 mypeps
 @
-Furthermore, the output of the \textit{fusionPeptides}, provides a DNA region encompassing the fusion that can be used to be upload in Primer3, \url{http://simgene.com/Primer3}, to design the PCR primers to validated the fusion event or to obtain the region encompassing the fusion that can be cloned and sequenced with Sanger method. The parameter \textit{donor.end}, \textit{acceptor.end} allow to define the extension of the DNA fragment to be extracted, respectively upstream to the donor end and down stream the acceptor start.
+Furthermore, the output of the \textit{fusionPeptides}, provides a DNAStringSet encompassing the fusion transcript that can be used to be upload in Primer3, \url{http://simgene.com/Primer3}, to design the PCR primers to validated the fusion event or to obtain the region encompassing the fusion that can be cloned and sequenced with Sanger method.
 
 \section{Fusions validation}
 The tools used for the detection of fusion events are error prone and many of the detected fusions are false positive events.
@@ -216,8 +215,8 @@ fusions <- filterList(fusions, type="intronic", parallel=T)
 \end{Sinput} 
 The above mentioned filtering procedure reduce significantly the number of fusions
 \begin{Sinput}
-#Generate a DNAStringSet object with the reconstruciton of the fusions left 
-#from the filtering procedure
+#Confirming by de novo assembly that reads are able to reconstruct the fusion junction 
+#reconstructing fusions 
 trsx <- chimeraSeqSet(fusions, parallel=T)
 #save the fusions as fasta file
 writeXStringSet(trsx, paste("fusions.fa",sep=""), format="fasta")
@@ -226,25 +225,22 @@ writeXStringSet(trsx, paste("fusions.fa",sep=""), format="fasta")
 subreadRun(ebwt="fusions.fa", input1="sample_R1.fastq", input2="sample_R2.fastq", 
 outfile.prefix="accepted_hits", alignment="se", cores=64)
 \end{Sinput} 
-The output bam contains only the mapped reads
+The output bam, accepted\_hits.bam, contains only the mapped reads
 \begin{Sinput}
-#Converting bam in fastq 
-bam2fastq(bam="accepted_hits.bam", filename="ready4gapfiller", parallel=T)
+#Validating fusion junction results with GapFiller
+tmp <- gapfillerWrap(chimeraSeqSet.out=trsx, bam="accepted_hits.bam", parallel=T)
 \end{Sinput}
-The output are two fastq  ready4gapfiller\_R1.fastq and ready4gapfiller\_R2.fastq
+The function \textit{gapfillerRun} returns a list of three objects:
+\begin{enumerate}
+  \item[\textbf{contigs}]: a PairwiseAlignments object.
+  \item[\textbf{junction.contigs}]: a DNAStringSet encompassing the sequences present in the contigs object  
+  \item[\textbf{fusion}]: a a DNAStringSet object encompassing the fusion transcript.
+\end{enumerate}
+The list is returned only in case that some of de novo assemblies cover the breakpoint junction.
+The final step is the confirmation of a unique open reading frame encompassing the coding region of the two fused genes.
 \begin{Sinput}
-#generating validation results with GapFiller
-validation.results <- lapply(trsx, function(x){
-  writeXStringSet(x, paste("fusion_tmp.fa",sep=""), format="fasta")
-  gf.out  <- gapfillerRun("fusion_tmp.fa", seed1="ready4gapfiller_R1.fastq",  
-  seed2="ready4gapfiller_R2.fastq", gapfiller=NULL, seed.ins=200, 
-  seed.var=50, block.length=5, overlap=20, max.length=5000, 
-  slack=7, k=6, global.mismatch=5, perc.identity=0.6)   
- return(gf.out)
-})
+ tmpx <- lapply(trsx,fusionPeptides)
 \end{Sinput}
-The results is a list containing PairwiseAlignments object only in case that some of de novo assemblies cover the breakpoint junction. Using Views method of PairwiseAlignments it is possible to visualise all the assemblies covering the breakpoint junction.
-
 \section{FusionMap}
 FusionMap aligns fusion reads directly to the genome without prior knowledge of potential fusion regions. FusionMap can detect fusion events in both single- and paired-end datasets from either RNA-Seq or gDNA-Seq studies and characterize fusion junctions at base-pair resolution: \url{http://www.omicsoft.com/fusionmap}
 The software splits reads into smaller fragments and finds fusion candidates aligning these fragments to genes annotated on genomic reference. The read alignment is performed by GSPN algorithm, integrated in the tool, with up to 2 base mismatches of tolerance. Two 25 bp seeds at each side of unmapped read are extracted and aligned to the reference. Putative fusions are reported only if both seeds align. Fusions events characterized by fusion boundaries distant less than 5 bp are aggregated and used for junction refinement. A scoring system based on canonical splicing patterns is then used to define the position of the fusion boundary. False positives are removed using the following four steps: (i) reads with break point score above a threshold are removed; (ii) fusions nearer than 5kb (partial removal of read-through events) are ignored; (iii) the fusion source sequences are concatenated, creating a pseudo-reference to be used to align unmapped reads. Fusion candidates with no reads aligned to the pseudo-reference are removed; and (iv) fusions with less than 2 reads aligned on distinct regions (PCR artifact removal) are removed.

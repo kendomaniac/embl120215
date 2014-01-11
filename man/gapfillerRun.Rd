@@ -20,16 +20,20 @@ k=6, global.mismatch=5, perc.identity=0.6)
   \item{slack}{number of overlaps: suffix-prefix overlap range is given by overlap, overlap + slack}
   \item{k}{length of the word used to hash}
   \item{global.mismatch}{maximum number of mismatches between mate and contig}
-  \item{perc.identity}{min percentage of identity for a high-rep position }
+  \item{perc.identity}{min percentage of identity for a high-rep position}
 }
 \value{
     The program will write in a temporary directory contigs.fasta and contig.stats, which are used to evaluate if the de novo  assembly allows the identification of the fusion break point. 
-The function returns a  PairwiseAlignments object only in case that some of de novo assemblies cover the breakpoint junction. Using Views method of PairwiseAlignments it is possible to visualise all the assemblies covering the breakpoint junction.
+The function returns a list of three objects. The list is returned only in case that some of de novo assemblies cover the breakpoint junction. 
+The list is made of: 
+\item{contigs}{which is a PairwiseAlignments object} 
+\item{junction.contigs}{which is a DNAStringSet encompassing the sequences present in the contigs object} 
+\item{fusion}{which is a DNAStringSet object encompassing the fusion transcript}
+
 }
 \author{Raffaele A Calogero}
 \examples{
 #	tmp <- gapfillerRun(fusion.fa=paste(path.package("chimera", quiet = FALSE),"/examples/uc002xvp.1-243_uc002iyu.4-1031.fa",sep=""),seed1=paste(path.package("chimera", quiet = FALSE),"/examples/uc002xvp.1-243_uc002iyu.4-1031_R1.fastq",sep=""),  seed2=paste(path.package("chimera", quiet = FALSE),"/examples/uc002xvp.1-243_uc002iyu.4-1031_R1.fastq",sep=""))
-#Views(tmp)
 
 }
 

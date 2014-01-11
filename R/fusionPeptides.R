@@ -1,83 +1,86 @@
-
-###
-fusionPeptides <- function(fset, which.isoform=1, donor.up=200, acceptor.down=200){
-    rna <- fusionRNA(fset)
-    rna <- rna[which.isoform] 
-    rna.name <- names(rna)
-	gr <- fusionGRL(fset)	
-	g1.name <- elementMetadata(gr[[1]])$KnownGene
-	g2.name <- elementMetadata(gr[[2]])$KnownGene
-	chimera <- paste(g1.name, g2.name, sep=":")
-	chr.sym <- as.list(org.Hs.egSYMBOL)
-    chimera.tmp <- strsplit(chimera,":")
-    if(length(chimera.tmp[[1]])>2){
-		     cat("\nAt list one of the fusion element is not an annotated gene.\nExtraction of fusion regions for this specific situation is not implemented, yet.\n")
-	         return()
-	}
-	rna.namelst <- strsplit(rna.name, ":")
-	length.donor <-strsplit(rna.namelst[[1]], "-")
-	p1.name <- length.donor[[1]][1]
-	p2.name <- length.donor[[2]][1]
-	chimera.name <- paste(p1.name, p2.name, sep=":")
-	length.donor <- as.numeric(length.donor[[1]][2])
-	p1.cdna <- rna[[1]][1:length.donor]
-    cdna.end <- trunc(length(p1.cdna)/3) * 3
-    left1.nts <- length(p1.cdna) - cdna.end
-    if(left1.nts == 0) {
-	   cat("\nCDS of gene1 is on frame 1\n")
-	   frame1 <- 0
-	    printed.frame1 <- 1
-	}
-    if(left1.nts == 1) {
-	   cat("\nCDS of gene1 is on frame 2\n")
-	   frame1 <- 1
-	   printed.frame1 <- 2
+fusionPeptides <- function(chimeraSeq.output, annotation="hsUCSC"){
+    if(annotation != "hsUCSC"){
+    	cat("\nAnnotation not implemented, yet")
+		return()
     }
-    if(left1.nts == 2) {
-	   cat("\nCDS of gene1 is on frame 3\n")
-	   frame1 <- 2
-	   printed.frame1 <- 3
+	ann <- as.list(org.Hs.egUCSCKG)
+	f.name <- names(chimeraSeq.output)
+	f.name <- strsplit(f.name, ":|\\.")
+	f.name <- c(f.name[[1]][1],f.name[[1]][3])
+	id1 <- lapply(ann, function(x,y){
+		 tmp <- grep(y,x)
+		 if(length(tmp)>0)
+			return(x[tmp])
+		 else
+			 return(NA)
+	 },y=f.name[1])
+	id1 <- as.character(id1[!is.na(id1)])
+	id2 <- lapply(ann, function(x,y){
+		 tmp <- grep(y,x)
+		 if(length(tmp)>0)
+			return(x[tmp])
+		 else
+			 return(NA)
+	 },y=f.name[2])
+	id2 <- as.character(id2[!is.na(id2)])
+	txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene 
+	cds_by_tx <- cdsBy(txdb, by="tx", use.names=TRUE)
+	trs <- c(id1,id2) 
+	if(length(which(trs %in% names(cds_by_tx)))==1){
+		cat("\nOnly names(cds_by_tx)[which(trs %in% names(cds_by_tx))] is coding\n")
+		return()
+	}else if(length(which(trs %in% names(cds_by_tx)))==0){
+		cat("\nNon of the two genes is coding\n")
+		return()
 	}
-	p2.cdna <- rna[[1]][(length.donor + 1):length(rna[[1]])]
-    cdna.start <- trunc(length(p2.cdna)/3) * 3
-    left2.nts <- length(p2.cdna) - cdna.start
-    if(left2.nts == 0) {
-	   cat("\nCDS of gene2 is on frame 1\n")
-	   frame2 <- 0
-	    printed.frame2 <- 1
-	}
-    if(left2.nts == 1) {
-	   cat("\nCDS of gene2 is on frame 2\n")
-	   frame2 <- 1
-	    printed.frame2 <- 2
-    }
-    if(left2.nts == 2) {
-	   cat("\nCDS of gene2 is on frame 3\n")
-	   frame2 <- 2
-	   printed.frame2 <- 3
-	}
-	tmp1 <- as.character(p1.cdna)
-	tmp2 <- as.character(p2.cdna)
-	sub1<- substring(tmp1,(nchar(tmp1) - donor.up), nchar(tmp1))
-	sub2<- substring(tmp2,1, acceptor.down)
-	tmp.ga <- fusionGA(fset)
-	tmp.ga <- tmp.ga[which(as.character(seqnames(tmp.ga))== chimera.name)]
-	tmp.ga <- tmp.ga[intersect(which(start(tmp.ga) < length(p1.cdna)), which(end(tmp.ga) > length(p1.cdna)))]
-	if(sum(left1.nts, left2.nts)== 3) {
-		fusion.status <- "In frame"
-	}else{
-		fusion.status <- "Not in frame"
-	}
-	
-    return(list(selected.alignment=which.isoform, 
-	            transcript1=p1.cdna, 
-	            pep1=translate(p1.cdna[1:(length(p1.cdna)- frame1)]), 
-	            frame.pep1=printed.frame1,
-                transcript2=p2.cdna, 
-                pep2=translate(p2.cdna[1:length(p2.cdna)]),
-                frame.pep2=printed.frame2,
-                fusion.status=fusion.status,
-                validation.seq=paste(sub1,sub2,collapse=""), 
-                junction.ga=tmp.ga)
-     )
+	cds_seqs <- extractTranscriptsFromGenome(BSgenome.Hsapiens.UCSC.hg19, cds_by_tx[which(names(cds_by_tx) %in% trs)]) 
+	proteome <- translate(cds_seqs) 
+	names(proteome) <- names(cds_seqs) 
+	p1 <- proteome[which(names(proteome)==id1)]
+	p2 <- proteome[which(names(proteome)==id2)]
+	fusion <- chimeraSeq.output[[1]]
+	fusion.p <- list()
+	fusion.p[[1]] <- translate(fusion[1:length(fusion)])
+	fusion.p[[2]] <- translate(fusion[2:length(fusion)])
+	fusion.p[[3]] <- translate(fusion[3:length(fusion)])
+	fusion.p <- AAStringSet(fusion.p)
+	alignment.p1 <- lapply(fusion.p, function(x,y){pairwiseAlignment(pattern=y, subject=x, type="local")},y=p1)
+	scores.p1 <- sapply(alignment.p1, function(x)score(x))
+	alignment.p1 <- alignment.p1[which(scores.p1==max(scores.p1))]
+	alignment.p2 <- lapply(fusion.p, function(x,y){pairwiseAlignment(pattern=y, subject=x, type="local")},y=p2)
+	scores.p2 <- sapply(alignment.p2, function(x)score(x))
+	alignment.p2 <- alignment.p2[which(scores.p2==max(scores.p2))]
+    if(length(which(scores.p1==max(scores.p1)))==1 & length(which(scores.p2==max(scores.p2)))==1){
+	    if(which(scores.p1==max(scores.p1)) == which(scores.p2==max(scores.p2))){
+		   cat("\nfused proteins are in frame\n")
+		   pattern1 <- as.character(pattern(alignment.p1[[1]]))
+		   fp1 <- matchPattern(pattern=pattern1, subject=fusion.p[[which(scores.p1==max(scores.p1))]])
+		   pattern2 <- as.character(pattern(alignment.p2[[1]]))
+		   fp2 <- matchPattern(pattern=pattern2, subject=fusion.p[[which(scores.p2==max(scores.p2))]])
+		   fusionp <- AAStringSet(c(paste(as.character(fp1), as.character(fp2), sep=""),as.character(fp1),as.character(fp2),as.character(p1),as.character(p2)))
+	       names(fusionp) <- c("fusion","p1pep","p2pep","p1","p2")
+		}else{
+	 	   cat("\nfused proteins are not in frame\n")
+ 		   pattern1 <- as.character(pattern(alignment.p1[[1]]))
+ 		   fp1 <- matchPattern(pattern=pattern1, subject=fusion.p[[which(scores.p1==max(scores.p1))]])
+ 		   pattern2 <- as.character(pattern(alignment.p2[[1]]))
+ 		   fp2 <- matchPattern(pattern=pattern2, subject=fusion.p[[which(scores.p2==max(scores.p2))]])
+		   fusionp <- AAStringSet(c("",as.character(fp1),as.character(fp2),as.character(p1),as.character(p2)))
+		   names(fusionp) <- c("fusion","p1pep","p2pep","p1","p2")		
+		}
+	}else if(length(which(scores.p1==max(scores.p1)))==1){
+ 	 	   cat("\nfused proteins are not in frame\np2 is not providing a unique good alignment to the fusion\nIt is possible that fusion involves non-coding UTR.\n")
+  		   pattern1 <- as.character(pattern(alignment.p1[[1]]))
+  		   fp1 <- matchPattern(pattern=pattern1, subject=fusion.p[[which(scores.p1==max(scores.p1))]])
+ 		   fusionp <- AAStringSet(c("",as.character(fp1),"",as.character(p1),as.character(p2)))
+ 		   names(fusionp) <- c("fusion","p1pep","p2pep","p1","p2")		
+	}else if(length(which(scores.p2==max(scores.p2)))==1){
+ 	 	   cat("\nfused proteins are not in frame.\np1 is not providing a unique good alignment to the fusion.\nIt is possible that fusion involves non-coding UTR.\n")
+ 		   pattern2 <- as.character(pattern(alignment.p2[[1]]))
+ 		   fp2 <- matchPattern(pattern=pattern2, subject=fusion.p[[which(scores.p2==max(scores.p2))]])
+		   fusionp <- AAStringSet(c("","",as.character(fp2),as.character(p1),as.character(p2)))
+		   names(fusionp) <- c("fusion","p1pep","p2pep","p1","p2")
+		   output <- list(fusion.peptides=fusionp, fusion.transcript=chimeraSeq.output)					
+	} 
+	return(fusionp)
 }

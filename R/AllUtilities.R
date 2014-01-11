@@ -304,42 +304,12 @@ prettyPrint <- function(list, filename, fusion.reads=c("all","spanning")){
 }
 
 ##
-chimeraSeqSet <- function(list, parallel=FALSE){
-   if(parallel){
-	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
-         p <- MulticoreParam()
-         trs <- bplapply(list, function(x){
-                tmp <- chimeraSeqs(x, type="transcripts")
-   			 tmp.names <- names(tmp)
-   			 tmp <- tmp[[1]]
-   			 return(list(seq=tmp, names=tmp.names))
-             }, 
-		 BPPARAM=p)
-         trs.names <- sapply(trs, function(x)x[2])
-         trs <- sapply(trs, function(x)x[1])
-         trs <-DNAStringSet(trs)
-         names(trs) <- as.character(trs.names)
-   }else{
-      trs <- lapply(list, function(x){
-             tmp <- chimeraSeqs(x, type="transcripts")
-			 tmp.names <- names(tmp)
-			 tmp <- tmp[[1]]
-			 return(list(seq=tmp, names=tmp.names))
-          }
-      )
-      trs.names <- sapply(trs, function(x)x[2])
-      trs <- sapply(trs, function(x)x[1])
-      trs <-DNAStringSet(trs)
-      names(trs) <- as.character(trs.names)
-   }
-   return(trs)
-}
-##
-bam2fastq<- function(bam, filename="ready4gapfiller",parallel=FALSE){
+bam2fastq<- function(bam, filename="ready4gapfiller", ref,parallel=FALSE){
     bam <- scanBam(bam)
-    seq <- as.character(bam[[1]]$seq)
-    qual <- as.character(bam[[1]]$qual)
-    read.n <- as.character(bam[[1]]$qname)
+    tmp <- which(as.character(bam[[1]]$rname) == ref)
+    seq <- as.character(bam[[1]]$seq[tmp])
+    qual <- as.character(bam[[1]]$qual[tmp])
+    read.n <- as.character(bam[[1]]$qname[tmp])
     names(seq) <- read.n 
     names(qual) <- read.n 
     seq <- seq[order(names(seq))]
@@ -385,6 +355,21 @@ bam2fastq<- function(bam, filename="ready4gapfiller",parallel=FALSE){
     fastq2[seq(4, length(fastq2),by=4)] <- qual[paired2]
     writeLines(fastq2, paste(filename,"_R2.fastq",sep=""))
 }
+##
+MHmakeRandomString <- function()
+{
+    n <- 1
+	lenght <- 12
+	randomString <- c(1:n)                  # initialize vector
+    for (i in 1:n)
+    {
+        randomString[i] <- paste(sample(c(0:9, letters, LETTERS),
+                                 lenght, replace=TRUE),
+                                 collapse="")
+    }
+    return(randomString)
+}
+
 
 
 
