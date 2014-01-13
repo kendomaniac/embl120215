@@ -64,12 +64,12 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 			     require(BiocParallel) || stop("\nMission BiocParallel library\n")
 		         p <- MulticoreParam()
 		         tmp <- fusionName(x, parallel=T)
-			     tmp.rm <- grep("chr", tmp)
-			     nsr <- bplapply(tmp.rm, function(x){
+			     tmp.rm <- strsplit(tmp, ":")
+			     nsr <- sapply(tmp.rm, function(x){
 			              if(x[1]==x[2]){
 				              return(1)
 			              }else{return(0)}
-			     }, BPPARAM=p)
+			     })
 			     nsr <- as.numeric(unlist(nsr))
 			     loc <- which(nsr == 0)
 		    }else{
@@ -85,7 +85,6 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 		    }
 		    
        }
-
        filtered <- x[loc]
        return(filtered)
 }

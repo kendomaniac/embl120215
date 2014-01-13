@@ -270,10 +270,14 @@ chimeraSeqSet <- function(list, parallel=FALSE){
 		 BPPARAM=p)
          trs.names <- sapply(trs, function(x)x[2])
          trs <- sapply(trs, function(x)x[1])
-         trs <-DNAStringSet(trs)
+#         trs <-DNAStringSet(trs)
          names(trs) <- as.character(trs.names)
+   	     for(i in 1:length(trs)){
+   		    names(trs[[i]]) <- as.character(trs.names)[i]
+   	     }
    }else{
       trs <- lapply(list, function(x){
+		     cat(".")
              tmp <- chimeraSeqs(x, type="transcripts")
 			 tmp.names <- names(tmp)
 			 tmp <- tmp[[1]]

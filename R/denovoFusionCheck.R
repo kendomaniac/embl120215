@@ -15,14 +15,10 @@ gapfillerRun <- function(fusion.fa, seed1, seed2, gapfiller=NULL, seed.ins=200, 
     system(paste("cp ",fusion.fa," ",seed1," ", seed2," ",tempdir, sep=""))
     setwd(tempdir)
     system(paste("cat",seed1,seed2,"> r1r2.fasta",sep=" ")) 
-#    system(paste(gapfiller," --no-read-cycle --output contigs.fasta --statistics contigs.stats --seed1 ",seed1,
-#                  " --seed2 ",seed2," --query r1r2.fasta --seed-ins ",seed.ins," --seed-var ",seed.var,
-#                  " --block-length ",block.length," --overlap  ",overlap," --read-length 200 ext.Thr 1 --max-length ",
-#                  max.length," --slack ",slack," --k ",k," --global-mismatch ",global.mismatch," --perc-identity ",perc.identity, sep=""))
-	system(paste(gapfiller," --no-read-cycle --output contigs.fasta --statistics contigs.stats --seed1 ",seed1,
-			     " --seed2 ",seed2," --seed-ins ",seed.ins," --seed-var ",seed.var,
-			     " --block-length ",block.length," --overlap  ",overlap," --read-length 200 ext.Thr 1 --max-length ",
-			     max.length," --slack ",slack," --k ",k," --global-mismatch ",global.mismatch," --perc-identity ",perc.identity, sep=""))
+    system(paste(gapfiller," --no-read-cycle --output contigs.fasta --statistics contigs.stats --seed1 ",seed1,
+                  " --seed2 ",seed2," --query r1r2.fasta --seed-ins ",seed.ins," --seed-var ",seed.var,
+                  " --block-length ",block.length," --overlap  ",overlap," --read-length 200 ext.Thr 1 --max-length ",
+                  max.length," --slack ",slack," --k ",k," --global-mismatch ",global.mismatch," --perc-identity ",perc.identity, sep=""))
 
 #   gapfiller.stats <- read.table("contigs.stats", sep = " ", header = T)
 #	gapfiller.stats <- t(gapfiller.stats)
@@ -52,9 +48,10 @@ gapfillerRun <- function(fusion.fa, seed1, seed2, gapfiller=NULL, seed.ins=200, 
     }    
 }
 ####
-.gfWrap<-function(chimeraSeq.out, bam.file){
+.gfWrap<-function(chimeraSeq.out, bam.file, parallel=FALSE){
+	cat(".")
 	tmp.file <- MHmakeRandomString()
-    bam2fastq(bam=bam.file, filename=tmp.file, ref=names(chimeraSeq.out), parallel=T)
+    bam2fastq(bam=bam.file, filename=tmp.file, ref=names(chimeraSeq.out),parallel=parallel)
     tmp.fa <- paste(MHmakeRandomString(),".fa", sep="")
     writeXStringSet(chimeraSeq.out, tmp.fa, format="fasta")
     mylist  <- gapfillerRun(tmp.fa, seed1=paste(tmp.file,"_R1.fastq",sep=""),  
@@ -63,13 +60,13 @@ gapfillerRun <- function(fusion.fa, seed1, seed2, gapfiller=NULL, seed.ins=200, 
     slack=7, k=6, global.mismatch=5, perc.identity=0.6)
 	return(mylist)
 }
-gapfillerWrap <- function(chimeraSeqSet.out, bam, parallel=FALSE){
-    if(parallel){
+gapfillerWrap <- function(chimeraSeqSet.out, bam, parallel=c(FALSE,TRUE)){
+    if(parallel[1]){
  	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
           p <- MulticoreParam()
-          mylist <- bplapply(chimeraSeqSet.out, .gfWrap, bam, BPPARAM=p)
+          mylist <- bplapply(chimeraSeqSet.out, .gfWrap, bam, parallel=parallel[2], BPPARAM=p)
     }else{
-        mylist <- lapply(chimeraSeqSet.out, .gfWrap, bam)
+        mylist <- lapply(chimeraSeqSet.out, .gfWrap, bam, parallel=parallel[2])
    }
    return(mylist)	
 }

@@ -228,7 +228,7 @@ outfile.prefix="accepted_hits", alignment="se", cores=64)
 The output bam, accepted\_hits.bam, contains only the mapped reads
 \begin{Sinput}
 #Validating fusion junction results with GapFiller
-tmp <- gapfillerWrap(chimeraSeqSet.out=trsx, bam="accepted_hits.bam", parallel=T)
+tmp <- gapfillerWrap(chimeraSeqSet.out=trsx, bam="accepted_hits.bam", parallel=c(FALSE,TRUE))
 \end{Sinput}
 The function \textit{gapfillerRun} returns a list of three objects:
 \begin{enumerate}
