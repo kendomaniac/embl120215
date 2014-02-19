@@ -120,7 +120,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
   tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
   tmp.gene1 <- NULL
   for(i in 1:length(tmp.tx)){
-		tmp.seq <- .buildFusion(type="donor.end", grl, tmp.tx[i])
+		tmp.seq <- .onlyExons(type="donor.end", grl, tmp.tx[i])
         tmp.gene1 <- c(tmp.gene1, tmp.seq$seq)
         if(!is.na(tmp.seq$intron.location)){
 	           return(1)
@@ -138,13 +138,54 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
   tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
   tmp.gene2 <- NULL
   for(i in 1:length(tmp.tx)){
-		  tmp.seq <- .buildFusion(type="acceptor.start", grl, tmp.tx[i])
+		  tmp.seq <- .onlyExons(type="acceptor.start", grl, tmp.tx[i])
           tmp.gene2 <- c(tmp.gene2, tmp.seq$seq)
           if(!is.na(tmp.seq$intron.location)){
 	           return(1)
         }
   }
   return(0)
+}
+
+
+#a function to identify the presence of intronic region at a junction point
+.onlyExons <- function(type=c("donor.end","acceptor.start"), fusion.grl, tx.id){
+    eg.lst <- list("tx_id" = tx.id)
+    eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
+    #handling the 5' end of the fusion
+    if(type=="donor.end"){
+	    donor.intron <- NA
+        exons.tx <- elementMetadata(eg.trs.e)$tx_id
+        exons.tx <- as.list(exons.tx)
+        exons.rank <- elementMetadata(eg.trs.e)$exon_rank
+        exons.idx<- sapply(exons.tx,function(x,y){grep(y, x)},y=tx.id)
+        rank.e <- NULL
+        for(i in 1:length(exons.idx)){
+           rank.e[i] <- exons.rank[[i]][exons.idx[i]]
+        }
+        fusion.pos <- findOverlaps(fusion.grl[[1]],  eg.trs.e, type = "any", select = "first", ignore.strand = T)
+        if(is.na(fusion.pos)){
+			return(list(seq=NA, intron.location=NA))
+		}else{
+			return(list(seq="OK", intron.location="OK"))
+		}             
+    }else if(type=="acceptor.start"){
+	    acceptor.intron <- NA
+        exons.tx <- elementMetadata(eg.trs.e)$tx_id
+        exons.tx <- as.list(exons.tx)
+        exons.rank <- elementMetadata(eg.trs.e)$exon_rank
+        exons.idx<- sapply(exons.tx,function(x,y){grep(y, x)},y=tx.id)
+        rank.e <- NULL
+        for(i in 1:length(exons.idx)){
+           rank.e[i] <- exons.rank[[i]][exons.idx[i]]
+        }
+        fusion.pos <- findOverlaps(fusion.grl[[2]],  eg.trs.e, type = "any", select = "first", ignore.strand = T)
+        if(is.na(fusion.pos)){
+			return(list(seq=NA, intron.location=NA))
+		}else{
+			return(list(seq="OK", intron.location="OK"))
+		}
+	}
 }
 
 

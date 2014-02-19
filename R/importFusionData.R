@@ -1257,6 +1257,10 @@ importFusionData <- function(format, filename, ...)
                               ranges = IRanges(start = as.numeric(report$first.aligned.read2), 
                               end= as.numeric(report$first.aligned.read2)),  cigar=as.character(report$read2.cigar), junction.type=as.numeric(report$junction.type))
             spanning <- which(elementMetadata(r1.gr)$junction.type != -1)
+			if(length(spanning)==0){
+				cat("\nThe input file does not have any spanning read.\nYour fusion lacking of spanning reads are most probably artifacts\nThe analysis of fusions lacking spanning reads is not supported.\n")
+                return()
+			}
 			r1r2.span <- setdiff(seq(1,length(r1.gr)), spanning) #location of spanning reads
 			###da qui			
             
@@ -1266,7 +1270,7 @@ importFusionData <- function(format, filename, ...)
             tmp.loc.span <-  tmp.loc[r1r2.span]
             tmp.loc1 <- NULL
             tmp.loc2 <- NULL
-            # the function discard fusions supported by a single read
+            # the function discard duplicated fusions 
             tmp.loc1 <- tmp.loc[duplicated(tmp.loc)]
             tmp.loc.u <- unique(tmp.loc1)
             #da rivedere non so se è giusto farlo
@@ -1278,17 +1282,15 @@ importFusionData <- function(format, filename, ...)
 	             tmp.loc.counts <- bplapply(tmp.loc.u, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
 	             tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
 	            #spanning
-	             tmp.loc.counts.span <- bplapply(tmp.loc.u.span, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
-	             tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
-
+	                tmp.loc.counts.span <- bplapply(tmp.loc.u.span, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
+	                tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
 	        }else{ 
                  tmp.loc.counts <- lapply(tmp.loc.u,function(x,y) length(which(y==x)), y=tmp.loc1)
                  tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
 	            #spanning
-                 tmp.loc.counts.span <- lapply(tmp.loc.u.span,function(x,y) length(which(y==x)), y=tmp.loc1)
-                 tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
+                   tmp.loc.counts.span <- lapply(tmp.loc.u.span,function(x,y) length(which(y==x)), y=tmp.loc1)
+                   tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
             }
-
             #at this point I have the supporting number of reads for fusions supported by more than one read
             if(length(hist.file)>0){
 	               pdf("hist")
@@ -1303,17 +1305,9 @@ importFusionData <- function(format, filename, ...)
            #spanning
             names(tmp.loc.counts.span) <- tmp.loc.u.span
             tmp.loc.counts.span <- tmp.loc.counts.span[which(names(tmp.loc.counts.span)%in%names(tmp.loc.counts))]
-
             tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
-    #        mt <- grep("MT:", tmp.loc.counts)
-    #        tmp.loc.counts <- tmp.loc.counts[setdiff(seq(1, length(tmp.loc.counts)),mt)]
-            
             tmp.loc.counts.span <- paste(names(tmp.loc.counts.span), tmp.loc.counts.span, sep="_")
-   #         mt <- grep("MT:", tmp.loc.counts.span)
-   #         tmp.loc.counts.span <- tmp.loc.counts.span[setdiff(seq(1, length(tmp.loc.counts.span)),mt)]
 
-
-		#	fusionreads.loc <- new("GAlignments")
 		    #loading annotation
 		if(org=="hs"){
 			chr.tmps <- as.list(org.Hs.egCHRLOC)
