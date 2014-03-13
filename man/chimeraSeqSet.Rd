@@ -1,6 +1,6 @@
 \name{chimeraSeqSet}
 \alias{chimeraSeqSet}
-\title{A function to generate s DNAStringSet encompassing fusion sequences}
+\title{A function to generates DNAStringSet encompassing fusion sequences}
 \description{A function generating the nucleotide sequences of chimeras described in a list of fSet, i.e. 
 the list generated using importFusionData function.             
 }

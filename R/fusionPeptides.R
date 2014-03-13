@@ -41,7 +41,8 @@ fusionPeptides <- function(chimeraSeq.output, annotation="hsUCSC"){
 		cat("\nNone of the two genes is coding\n")
 		return()
 	}
-	cds_seqs <- extractTranscriptsFromGenome(BSgenome.Hsapiens.UCSC.hg19, cds_by_tx[which(names(cds_by_tx) %in% trs)]) 
+	#cds_seqs <- extractTranscriptsFromGenome(BSgenome.Hsapiens.UCSC.hg19, cds_by_tx[which(names(cds_by_tx) %in% trs)]) 
+	cds_seqs <- extractTranscriptSeqs(BSgenome.Hsapiens.UCSC.hg19, cds_by_tx[which(names(cds_by_tx) %in% trs)])
 	proteome <- translate(cds_seqs) 
 	names(proteome) <- names(cds_seqs) 
 	p1 <- proteome[which(names(proteome)==id1)]
