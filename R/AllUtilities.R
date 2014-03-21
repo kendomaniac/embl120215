@@ -123,7 +123,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 		tmp.seq <- .onlyExons(type="donor.end", grl, tmp.tx[i])
         tmp.gene1 <- c(tmp.gene1, tmp.seq$seq)
         if(!is.na(tmp.seq$intron.location)){
-	           return(1)
+	           return(0)#junction in an exon
         }
   }
   names(tmp.gene1) <- tmp.name
@@ -141,10 +141,10 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 		  tmp.seq <- .onlyExons(type="acceptor.start", grl, tmp.tx[i])
           tmp.gene2 <- c(tmp.gene2, tmp.seq$seq)
           if(!is.na(tmp.seq$intron.location)){
-	           return(1)
+	           return(0)#junction in an exon
         }
   }
-  return(0)
+  return(1)#junction in an intron
 }
 
 
@@ -165,7 +165,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
         }
         fusion.pos <- findOverlaps(fusion.grl[[1]],  eg.trs.e, type = "any", select = "first", ignore.strand = T)
         if(is.na(fusion.pos)){
-			return(list(seq=NA, intron.location=NA))
+			return(list(seq=NA, intron.location=NA))#junctionin an intron
 		}else{
 			return(list(seq="OK", intron.location="OK"))
 		}             
@@ -181,7 +181,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
         }
         fusion.pos <- findOverlaps(fusion.grl[[2]],  eg.trs.e, type = "any", select = "first", ignore.strand = T)
         if(is.na(fusion.pos)){
-			return(list(seq=NA, intron.location=NA))
+			return(list(seq=NA, intron.location=NA))#junctionin an intron
 		}else{
 			return(list(seq="OK", intron.location="OK"))
 		}
@@ -280,6 +280,48 @@ picardInstallation <- function(){
         setwd(mydir)
         return()
 }
+
+#oncofuse installation
+oncofuseInstallation <- function(){
+	    mydir <- getwd()
+		oncofuseDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/oncofuse", sep="")
+		tmp.info <- dir(paste(path.package("chimera", quiet = FALSE)))
+		if(length(grep("oncofuse", tmp.info))>0){
+		   unlink(oncofuseDirLocation, recursive = T, force = T)
+	    }
+		dir.create(oncofuseDirLocation, showWarnings = TRUE, recursive = FALSE)
+		setwd(oncofuseDirLocation)
+		cat("\nBegin downloads of oncofuse.....\n")
+		download.file("http://www.unav.es/genetica/oncofuse-v1.0.6.zip", "oncofuse.zip", mode="wb")
+        cat("\nThe oncofuse downloaded version is oncofuse-v1.0.6\n")
+        system(paste("unzip oncofuse.zip", sep=""))
+        system("cp -fR ./oncofuse-v1.0.6/* .")
+        system("rm -fR ./oncofuse-v1.0.6/")
+        system("chmod +x *")
+        setwd(mydir)
+        return()
+}
+oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG","-")){
+	oncofuseDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/oncofuse", sep="")
+	of.input <- paste("of",gsub("[' '| :]","-", date()),sep="_")
+	extract.loc <-function(fset, tissue){
+	    chr.g1 <- as.character(seqnames(fusionGRL(fset)$gene1))
+		chr.g2 <- as.character(seqnames(fusionGRL(fset)$gene2))
+		end.g1 <- end(fusionGRL(fset)$gene1)
+		start.g2 <- start(fusionGRL(fset)$gene2)
+		return(list(chr.g1, end.g1, chr.g2, start.g2, tissue))
+    }
+	fset.of <- sapply(listfSet, extract.loc, tissue)
+	fset.of <- as.data.frame(fset.of)
+	fset.of <- t(fset.of)
+	write.table(fset.of, of.input, sep="\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
+	cat("\nStart Oncofuse analysis\n")
+	system(paste("java -Xmx1G -jar ",paste(oncofuseDirLocation,"/Oncofuse.jar ",sep=""), of.input," coord ",tissue," ", sub("of","of.out",of.input), sep=""))
+    of.out <-read.table(sub("of","of.out",of.input), sep="\t", header=T)
+	cat("\nEnd Oncofuse analysis\n")
+	return(of.out)
+}
+
 ###
 validateSamFile <- function(input, output, mode=c("VERBOSE", "SUMMARY"), max.output="100"){
 	tmp.info <- dir(paste(path.package("chimera", quiet = FALSE)))
