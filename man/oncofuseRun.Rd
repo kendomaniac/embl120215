@@ -17,8 +17,6 @@
 #installOncofuse()
 #of.out <- oncofuseRun(tmp, tissue="EPI")
 }
-
-\seealso{ \code{\link{installOncofuse}}}
 \keyword{utilities}
 
 
