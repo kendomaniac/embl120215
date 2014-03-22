@@ -301,7 +301,7 @@ oncofuseInstallation <- function(){
         setwd(mydir)
         return()
 }
-oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG","-")){
+oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG")){
 	oncofuseDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/oncofuse", sep="")
 	of.input <- paste("of",gsub("[' '| :]","-", date()),sep="_")
 	extract.loc <-function(fset, tissue){
