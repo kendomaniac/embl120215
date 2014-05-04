@@ -19,7 +19,7 @@
 \begin{document}
 \title{Chimera}
 \author{Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero}
-\date{January 11 2014}
+\date{May 3 2014}
 \maketitle
 
 \section{Introduction}
@@ -33,7 +33,8 @@ The discovery of novel gene fusions can lead to a better comprehension of cancer
   \item tophat-fusion,
   \item FusionMap
   \item chimeraScan
-  \item STAR  
+  \item STAR
+  \item Rsubread    
 \end{enumerate}
 
 \subsection{Fusion finder tools}
@@ -287,8 +288,37 @@ after spanning reads are incorporated, ChimeraScan filters chimeras with few sup
 
 \subsection{STAR}
 Spliced Transcripts Alignment to a Reference (STAR) software is based on a previously un-described RNA-seq alignment algorithm which utilizes sequential maximum mappable seed search in uncompressed suffix arrays followed by seed clustering and stitching procedure. STAR can discover non-canonical splices and chimeric (fusion) transcripts.  If the best scoring alignment window does not cover the entire read, STAR reports chimeric connections to the other windows that cover portions of the read not covered by the main window. These chimeric connections between windows can span long distance on the same strand, or different strands on the same chromosome, or different chromosomes.
-The \textit{importFusionData} allows to import the file Chimeric.out.junction. Furthermore,  STAR can be installed in the chimera folder using the function \textit{starInstallation}, and STAR can be run using \textit{starRun}.
+The \textit{importFusionData} allows to import the file Chimeric.out.junction. Furthermore,  STAR can be installed in the chimera folder using the function \textit{starInstallation}, and STAR can be run using \textit{starRun}. Data import can be parallelized with option parallel sets to TRUE.
 
+\subsection{Rsubread}
+Rsubread package provide the function \textit{subjunc} that allows with the parameter  reportAllJunctions set to TRUE allow the detection of fusions which are reported with the extension fusion.txt. To optimize data analysis we suggest to run first STAR in paired end mode adding the parameter outReadsUnmapped Fastx, which save unmapped reads with estension mate1 and mate2. The unmapped reads are then passed to the \textit{subjunc} function of Rsubread package to generate fusion data. Data import can be parallelized with option parallel sets to TRUE.
+
+\begin{Sinput}
+
+#########Example of fusion detection with Rsubread.
+##STEP1: example of shell script to run STAR to remove all paired-end mapping  
+#not involving canonical junctions.
+
+#! /bin/sh
+STAR_FOLDER=/somewhere/STAR_2.3.1n/
+STAR_GENOME=/somewhere/hg9.star
+FASTQ1=../myfastq_R1.fastq
+FASTQ2=../myfastq_R2.fastq
+OUTFILE=mydata_
+THREADS=64
+$STAR_FOLDER/STARstatic --genomeDir $STAR_GENOME --readFilesIn $FASTQ1 $FASTQ2 --runThreadN $THREADS --outFileNamePrefix $OUTFILE --outReadsUnmapped Fastx
+
+##STEP2: On the unmapped fastq generated from STAR mapping script (above)
+library(Rsubread)
+subjunc("/home/calogero/bin/genome/rsubread.hg19/hg19", "spike4_Unmapped.out.mate1", "spike4_Unmapped.out.mate2", output_file="spike4_subread.bam", output_format="BAM",nthreads=64,reportAllJunctions=TRUE)
+ tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=10)
+
+##STEP3: Importing fusions in R
+tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=10)
+ 
+\end{Sinput} 
+
+ 
 
 \section{example}
 The package comes with a set of data, present in the example folder, representing all the information needed to create an fSet object for the fusion SULF2:ARFGEF2 detected by FusionMap in the MCF7 dataset published by Edgren et al. Genome Biology 2011, 12:R6.
