@@ -335,6 +335,14 @@ and they can be used to generate the GAlignments object to be loaded in the fSet
 using addGA function.
 \end{Sinput}
 \section{R-Bioconductor information}
+
+\section{Methods comparison}
+In the following table are shown the data obtained by various fusion detection tools, default paramenters, on the datasets published by Edgen. The different cell lines fastq were combined in a unique  fastq to generate the benchmark dataset.
+<<>>==
+read.table(paste(find.package(package="chimera"),"/examples/edgren_stat_detection.txt",sep=""), sep="\t", header=T)
+@
+
+
 <<>>==
 sessionInfo()
 @
