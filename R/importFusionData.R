@@ -1489,8 +1489,16 @@ importFusionData <- function(format, filename, ...)
 			
 			if(parallel){
 	             fusionList <- bplapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
+				 if(length(fusionList)==0){
+					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
+					 return()
+				  }
 	             isfset <- sapply(fusionList, is.fSet)
 	             fusionList <- fusionList[isfset]
+				 if(length(fusionList)==0){
+					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
+					 return()
+				  }
 	             fusionList.span <- bplapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
                  if(length(fusionList.span)>0){
 	                 isfset <- sapply(fusionList.span, is.fSet)
@@ -1530,8 +1538,16 @@ importFusionData <- function(format, filename, ...)
 	             }
 	        }else{ 
                  fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
+				 if(length(fusionList)==0){
+					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
+					 return()
+				  }
 	             isfset <- sapply(fusionList, is.fSet)
 	             fusionList <- fusionList[isfset]
+				 if(length(fusionList)==0){
+					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
+					 return()
+				  }
                  fusionList.span <- lapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
                  if(length(fusionList.span)>0){
 	                 isfset <- sapply(fusionList.span, is.fSet)
