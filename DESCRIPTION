@@ -1,7 +1,7 @@
 Package: chimera
 Type: Package
 Title: A package for secondary analysis of fusion products
-Version: 1.7.3
+Version: 1.7.4
 Date: 2014-13-05
 Author: Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero 
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
