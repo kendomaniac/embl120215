@@ -1,6 +1,6 @@
 %\VignetteIndexEntry{chimera}
 %\VignetteDepends{}
-%\VignetteKeywords{chimera, fusion-product, RNA-seq, bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap}
+%\VignetteKeywords{chimera, fusion-product, RNA-seq, bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap, STAR Rsubread}
 %\VignettePackage{chimera}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[12pt]{article}
@@ -311,7 +311,7 @@ $STAR_FOLDER/STARstatic --genomeDir $STAR_GENOME --readFilesIn $FASTQ1 $FASTQ2 -
 ##STEP2: On the unmapped fastq generated from STAR mapping script (above)
 library(Rsubread)
 subjunc("/home/calogero/bin/genome/rsubread.hg19/hg19", "spike4_Unmapped.out.mate1", "spike4_Unmapped.out.mate2", output_file="spike4_subread.bam", output_format="BAM",nthreads=64,reportAllJunctions=TRUE)
- tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=10)
+tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=2, parallel=T)
 
 ##STEP3: Importing fusions in R
 tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=10)
@@ -321,11 +321,11 @@ tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", mi
  
 
 \section{example}
-In the example folder
+In the following table are shown the data obtained by various fusion detection tools, default parameters, on the datasets published by Edgen. The different cell lines fastq were combined in a unique  fastq to generate the benchmark dataset.
 <<>>==
-dir(paste(find.package(package="chimera"),"/examples/",sep=""))
+read.table(paste(find.package(package="chimera"),"/examples/edgren.stat.detection.txt",sep=""), sep="\t", header=T)
 @
-it is present a file named edgren_stat_detection.txt, which contains the fusions detected in the Edgren dataset, Genome Biology 2011, by the tools so far tested and implemented in chimera.
+Further comparison results are available at  \url{https://code.google.com/p/fusioncatcher/wiki/comparison} 
 The package comes with a set of data, present in the example folder, representing all the information needed to create an fSet object for the fusion SULF2:ARFGEF2 detected by FusionMap in the MCF7 dataset published by Edgren et al. Genome Biology 2011, 12:R6.
 \begin{Sinput}
 mcf7.FMFusionReport is the output of FusionMap and can be imported using   importFusionData                      
@@ -337,14 +337,6 @@ and they can be used to generate the GAlignments object to be loaded in the fSet
 using addGA function.
 \end{Sinput}
 \section{R-Bioconductor information}
-
-\section{Methods comparison}
-In the following table are shown the data obtained by various fusion detection tools, default parameters, on the datasets published by Edgen. The different cell lines fastq were combined in a unique  fastq to generate the benchmark dataset.
-<<>>==
-read.table(paste(find.package(package="chimera"),"/examples/edgren.stat.detection.txt",sep=""), sep="\t", header=T)
-@
-Further comparison results are available at  \url{https://code.google.com/p/fusioncatcher/wiki/comparison} 
-
 <<>>==
 sessionInfo()
 @
