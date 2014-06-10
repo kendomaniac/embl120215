@@ -1,6 +1,6 @@
 
 ###
-filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "annotated.genes", "read.through"),query, parallel=FALSE){
+filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "annotated.genes", "read.through", "oncofuse"),oncofuse.output=NULL, query=NULL, oncofuse.type=c("g5CDS", "g3CDS", "g5g3CDS", "g5exon", "g3exon", "g5g3exon", "passenger.prob", "expression.gain"), parallel=FALSE){
        if(type=="fusion.names"){
 	       if(!is.character(query)){
 		        cat("\nfiltering by fusion names needs to pass to the method vector of character names\n")
@@ -85,6 +85,65 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 		    }
 		    
        }
+	   if(type=="oncofuse"){
+		   if(length(oncofuse.type)!=1){
+		   	   cat("\nYou need to select one option for oncofuse filtering\n")
+		   }
+		  if(dim(oncofuse.output)[2]!=34){
+			  cat("\nIt seems that the output of oncofuse has not the correct number of columns\n")
+			  return()
+		  }
+		  if(length(x)<1){
+			  cat("\nIt seems that the list of fusions you provided is empty\n")
+			  return()
+		  }
+          if(parallel){
+		     require(BiocParallel) || stop("\nMission BiocParallel library\n")
+   	         p <- MulticoreParam()
+	         tmp <- fusionName(x, parallel=T)
+	      }else{
+		     tmp <- fusionName(x)
+	      }
+		  of.fn <- paste(as.character(oncofuse.output$X5_FPG_GENE_NAME),as.character(oncofuse.output$X3_FPG_GENE_NAME), sep=":")
+          if(length(intersect(tmp, of.fn))==0){
+          	  cat("\nIt seems that there is no overlaps between oncofuse output and the fusion names of the fusions list.\n")
+			  return()
+          }
+		  cat("\n", "The number of fusions detected by oncofuse are ", length(intersect(tmp, of.fn)),"\n")
+		  if(oncofuse.type=="g5CDS"){
+		  	loc <- intersect(tmp, of.fn[which(oncofuse.output$X5_IN_CDS.=="Yes")])
+			cat("\n", "The number of fusions detected by oncofuse into CDS of gene at 5' end are ", length(intersect(tmp, of.fn)),"\n")
+		  }
+		  if(oncofuse.type=="g3CDS"){
+		  	loc <- intersect(tmp, of.fn[which(oncofuse.output$X3_IN_CDS.=="Yes")])
+			cat("\n", "The number of fusions detected by oncofuse into CDS of gene at 3' end are ", length(loc),"\n")
+		  }
+		  if(oncofuse.type=="g5g3CDS"){
+		  	loc <- intersect(tmp, of.fn[intersect(which(oncofuse.output$X5_IN_CDS.=="Yes"), which(oncofuse.output$X3_IN_CDS.=="Yes"))])
+			cat("\n", "The number of fusions detected by oncofuse into CDS of both genes are ", length(loc),"\n")
+		  }
+		  if(oncofuse.type=="g5exon"){
+		  	loc <- intersect(tmp, of.fn[which(oncofuse.output$X5_SEGMENT_TYPE=="Exon")])
+			cat("\n", "The number of fusions detected by oncofuse into an exon of gene at 5' end are ", length(intersect(tmp, of.fn)),"\n")
+		  }
+		  if(oncofuse.type=="g3exon"){
+		  	loc <- intersect(tmp, of.fn[which(oncofuse.output$X3_SEGMENT_TYPE=="Exon")])
+			cat("\n", "The number of fusions detected by oncofuse into an exon of gene at 3' end are ", length(loc),"\n")
+		  }
+		  if(oncofuse.type=="g5g3exon"){
+		  	loc <- intersect(tmp, of.fn[intersect(which(oncofuse.output$X5_SEGMENT_TYPE=="Exon"), which(oncofuse.output$X3_SEGMENT_TYPE=="Yes"))])
+			cat("\n", "The number of fusions detected by oncofuse into an exon of both genes are ", length(loc),"\n")
+		  }
+		  if(oncofuse.type=="passenger.prob"){
+		  	loc <- intersect(tmp, of.fn[which(as.numeric(oncofuse.output$P_VAL_CORR)<=query)])
+			cat("\n", "The number of fusions detected by oncofuse with a passenger probability lower then ",query, " are ", length(loc),"\n")
+		  }
+		  if(oncofuse.type=="expression.gain"){
+		  	loc <- intersect(tmp, of.fn[which(as.numeric(oncofuse.output$EXPRESSION_GAIN)>=query)])
+			cat("\n", "The number of fusions detected by oncofuse with a expression gain score greater then ",query, " are ", length(loc),"\n")
+		  }
+		  
+	   }
        filtered <- x[loc]
        return(filtered)
 }
@@ -301,7 +360,7 @@ oncofuseInstallation <- function(){
         setwd(mydir)
         return()
 }
-oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG")){
+oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG"), plot=FALSE){
 	oncofuseDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/oncofuse", sep="")
 	of.input <- paste("of",gsub("[' '| :]","-", date()),sep="_")
 	extract.loc <-function(fset, tissue){
@@ -317,11 +376,14 @@ oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG")){
 	write.table(fset.of, of.input, sep="\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
 	cat("\nStart Oncofuse analysis\n")
 	system(paste("java -Xmx1G -jar ",paste(oncofuseDirLocation,"/Oncofuse.jar ",sep=""), of.input," coord ",tissue," ", sub("of","of.out",of.input), sep=""))
-    of.out <-read.table(sub("of","of.out",of.input), sep="\t", header=T)
+    of.out <-read.table(sub("of","of.out",of.input), sep="\t", header=TRUE, fill=TRUE, na.strings="NaN", quote = "")
 	cat("\nEnd Oncofuse analysis\n")
 	return(of.out)
+	if(plot){
+	    smoothScatter(log10(as.numeric(of.out$P_VAL_CORR)), log10(as.numeric(of.out$EXPRESSION_GAIN)), xlab="log10 PASSENGER PROBABILITY", ylab="log10 EXPRESSION GAIN", pch=19, cex=0.5, col="red")
+    }
 }
-
+#Bayesian probability of fusion being a passenger (class 0), given as Bonferroni-corrected P-value
 ###
 validateSamFile <- function(input, output, mode=c("VERBOSE", "SUMMARY"), max.output="100"){
 	tmp.info <- dir(paste(path.package("chimera", quiet = FALSE)))

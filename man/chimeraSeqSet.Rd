@@ -20,7 +20,7 @@ the list generated using importFusionData function.
 	fusion.names
 	myset <- tmp[1:3]
 	tmp.seq <- chimeraSeqSet(myset, parallel=FALSE)
-	#writeXStringSet(tmp.seq, "detected.fusions.fa", format="fasta")
+	#sapply(tmp.seq, function(x){writeXStringSet(x, "detected.fusions.fa", format="fasta", append=TRUE)})
 }
 
 \seealso{\code{\link{fusionName}, \link{importFusionData}, \link{gapfillerInstallation}, \link{gapfillerRun}}}

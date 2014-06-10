@@ -1,7 +1,7 @@
 \name{subreadRun}
 \alias{subreadRun}
 \title{A function to generate a bam file for fusions coverage evaluation}
-\description{A function mapping reads to a chimera sequence set. The bam produced by this remapping on a putative fusion will be used to plot the coverage data for all the fused constructs. The function uses Rsubread aligner.           
+\description{A function mapping reads to a chimera sequence set. The bam produced by this remapping on a putative fusion will be used to plot the coverage data for all the fused constructs. The function uses Rsubread aligner for MAC and UNIX OS. In case WINDOWS OS Rbowtie is used.          
 }
 \usage{subreadRun(ebwt,input1, input2, outfile.prefix="accepted_hits", alignment=c("se","pe"),cores=1)}
 \arguments{
