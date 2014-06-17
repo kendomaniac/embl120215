@@ -7,6 +7,7 @@
 \examples{
 #oncofuseInstallation()
 }
+\seealso{\code{\link{oncofuseRun}}}
 \keyword{utilities}
 
 

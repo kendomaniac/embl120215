@@ -23,7 +23,7 @@ In case the fusion junction is located in an intronic sequence, a warning is pro
 	#writeXStringSet(tmp.seq, paste(sub(":","_",fusion.names[[13]]),".fa",sep=""), format="fasta")
 }
 
-\seealso{\code{\link{fusionName}}}
+\seealso{\code{\link{fusionName}}, \code{\link{chimeraSeqSet}}}
 \keyword{utilities}
 
 

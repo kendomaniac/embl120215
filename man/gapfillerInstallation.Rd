@@ -13,6 +13,7 @@ The paper describing the tool is Nadalin F, Vezzi F, Policriti A. GapFiller: a d
 \examples{
 #gapfillerInstallation(os="mac64")
 }
+\seealso{\code{\link{gapfillerRun}}}
 \keyword{utilities}
 
 

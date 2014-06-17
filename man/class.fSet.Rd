@@ -62,7 +62,7 @@ myset <- addGA(myset, paste(path.package(package="chimera"),"/examples/mcf7_trs_
 ga <- fusionGA(myset)
 }
 
-\seealso{\code{\link{chimeraSeqs}}, \code{\link{tophatRun}}, \code{\link{plotCoverage}}}
+\seealso{\code{\link{chimeraSeqs}}, \code{\link{oncofuseRun}}, \code{\link{fusionPeptides}}, \code{\link{prettyPrint}}}
 
 \keyword{classes}
 
