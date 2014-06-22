@@ -19,7 +19,7 @@
 \begin{document}
 \title{Chimera}
 \author{Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero}
-\date{May 3 2014}
+\date{June 22 2014}
 \maketitle
 
 \section{Introduction}
@@ -34,7 +34,8 @@ The discovery of novel gene fusions can lead to a better comprehension of cancer
   \item FusionMap
   \item chimeraScan
   \item STAR
-  \item Rsubread    
+  \item Rsubread  
+  \item fusionCatcher    
 \end{enumerate}
 
 \subsection{Fusion finder tools}
@@ -328,13 +329,15 @@ read.table(paste(find.package(package="chimera"),"/examples/edgren.stat.detectio
 Further comparison results are available at  \url{https://code.google.com/p/fusioncatcher/wiki/comparison} 
 The package comes with a set of data, present in the example folder, representing all the information needed to create an fSet object for the fusion SULF2:ARFGEF2 detected by FusionMap in the MCF7 dataset published by Edgren et al. Genome Biology 2011, 12:R6.
 \begin{Sinput}
-mcf7.FMFusionReport is the output of FusionMap and can be imported using   importFusionData                      
-mcf7_sample_1.fq and mcf7_sample_2.fq are fastq files to be used for  coverage estimation 
+mcf7.FMFusionReport is the output of FusionMap and 
+can be imported using importFusionData                      
+mcf7_sample_1.fq and mcf7_sample_2.fq are 
+fastq files to be used for coverage estimation 
 using tophatRun on  the fusion SULF2_ARFGEF2.fa.          
 mcf7_trs_accepted_hits.bam, mcf7_trs_accepted_hits.bam_sorted.bam and 
 mcf7_trs_accepted_hits.bam_sorted.bam.bai are the output of tophatRun 
-and they can be used to generate the GAlignments object to be loaded in the fSet object 
-using addGA function.
+and they can be used to generate the GAlignments object 
+to be loaded in the fSet object using addGA function.
 \end{Sinput}
 \section{R-Bioconductor information}
 <<>>==
