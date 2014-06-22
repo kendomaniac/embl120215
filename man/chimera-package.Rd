@@ -8,16 +8,6 @@ A package for secondary analysis of fusion products
 \description{
 The package imports fusion results from tophat-fusion, mapSplice, deFuse, fusionmap, bellerophontes, fusionfinder, fusionhunter, STAR, Rsubread, fusionCatcher.
 The package was design to facilitate the characterisation of fusion products events.
-}
-\details{
-\tabular{ll}{
-Package: \tab chimera\cr
-Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2012-10-16\cr
-License: \tab Artistic-2.0\cr
-}
-
 Data upload:
 outputs for the above indicated fusion detection tools can be imported using \code{\link{importFusionData}} in a list of \code{\link{fSet}}  objects.
 \code{\link{fSet-class}} offers various methods to extract information from the fSet objects.
@@ -43,8 +33,16 @@ The function \code{\link{gapfillerRun}} allows to check if reads mapped by \code
 
 Export
 The function \code{\link{prettyPrint}} converts the information stored in a list of \code{\link{fSet}} objects in a dataframe structure that is saved as tab delimited file.
-
 }
+\details{
+\tabular{ll}{
+Package: \tab chimera\cr
+Type: \tab Package\cr
+Version: \tab 1.0\cr
+Date: \tab 2012-10-16\cr
+License: \tab Artistic-2.0\cr
+}
+
 \author{
 Raffaele A Calogero
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
