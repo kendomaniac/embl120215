@@ -1,4 +1,6 @@
 subreadRun <- function(ebwt, input1, input2, outfile.prefix="accepted_hits", alignment=c("se","pe"), cores=1){
+	buildindex <- NULL
+	align <- NULL
     if(.Platform$OS.type!="windows"){	
 	     require(Rsubread) || stop("\nMissing Rsubread package\n")
 	     chimera.db <- paste("chimeraDB",gsub("[' '| :]","-", date()),sep="_")

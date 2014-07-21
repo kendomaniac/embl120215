@@ -25,7 +25,7 @@
 tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
 fusion.names <- fusionName(tmp)
 tmp1 <- filterList(tmp, type="fusion.names", fusion.names[c(1,3,7)], parallel=FALSE)
-tmp2 <- filterList(tmp, type="supporting.reads", 2, parallel=FALSE)
+tmp2 <- filterList(tmp, type="supporting.reads", query=2, parallel=FALSE)
 #tmp3 <- filterList(tmp, type="intronic")
 #tmp4 <- filterList(tmp, type="annotated.genes", parallel=FALSE)
 #tmp5 <- filterList(tmp, type="read.through", parallel=FALSE)

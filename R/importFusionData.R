@@ -40,6 +40,10 @@ importFusionData <- function(format, filename, ...)
 #tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=10)
 
 .rsImport <- function(fusion.report, org=c("hs","mm"), min.distance=700000, min.support=10, parallel=FALSE){
+	     org.Mm.egCHRLOC <- NULL
+		 org.Mm.egCHRLOCEND <- NULL
+		 org.Mm.egSYMBOL <- NULL
+		 Mmusculus <- NULL
          if(parallel){ 
            require(BiocParallel) || stop("\nMission BiocParallel library\n")
            p <- MulticoreParam()
@@ -166,6 +170,9 @@ importFusionData <- function(format, filename, ...)
 
 #FusionMap import
 .fmImport <- function(fusion.report, org=c("hs","mm")){
+	    org.Mm.egCHRLOC <- NULL
+		org.Mm.egCHRLOCEND <- NULL
+		org.Mm.egSYMBOL <- NULL
 	    report <- read.table(fusion.report, sep="\t", header=T)
 #		fusionreads.loc <- new("GAlignments")
 	    #loading annotation
@@ -1067,7 +1074,12 @@ importFusionData <- function(format, filename, ...)
 }
 #ChimeraScann import
 .csImport <- function(fusion.report, min.support=0, org=c("hs","mm")){
-	    report <- read.table(fusion.report, sep="\t", header=F)
+	    org.Mm.egCHRLOC <- NULL
+		org.Mm.egCHRLOCEND <- NULL
+		org.Mm.egSYMBOL <- NULL
+		Mmusculus <- NULL
+		
+	    report <- read.table(fusion.report, sep="\t", header=F, quote ="")
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
 		report <- report[which(as.numeric(report$spanning_frags) >= min.support),]
         cat(paste("\n",dim(report)[1]," detected fusions\n",sep=""))
@@ -1353,6 +1365,10 @@ importFusionData <- function(format, filename, ...)
 }
 #############
 .starImport <- function(fusion.report, org=c("hs","mm"), parallel=FALSE, hist.file=NULL, min.support=10){
+	        org.Mm.egCHRLOC <- NULL
+	        org.Mm.egCHRLOCEND <- NULL
+	        org.Mm.egSYMBOL <- NULL
+	        
 	        if(parallel){ 
 		         require(BiocParallel) || stop("\nMission BiocParallel library\n")
 	             p <- MulticoreParam()
@@ -1591,6 +1607,11 @@ importFusionData <- function(format, filename, ...)
 }
 #.starFset(tmp.loc.counts, names(tmp.loc.counts))
 .starFset <- function(x, z, j, k, y){
+	Mmusculus <- NULL
+	org.Mm.egCHRLOC <- NULL
+	org.Mm.egCHRLOCEND <- NULL
+	org.Mm.egSYMBOL <- NULL
+	
     tmp.x <- strsplit(x,"_")
     counts <- as.numeric(tmp.x[[1]][2])
     fusion <- tmp.x[[1]][1]
@@ -1657,6 +1678,10 @@ importFusionData <- function(format, filename, ...)
 }		             
 ####fusionCatcher
 .fcImport <- function(fusion.report, org=c("hs", "mm")){
+	org.Mm.egCHRLOC <- NULL
+	org.Mm.egCHRLOCEND <- NULL
+	org.Mm.egSYMBOL <- NULL
+	
 	report <- read.table(fusion.report, sep="\t", header=TRUE)
 	
 	#KnownTranscript1
