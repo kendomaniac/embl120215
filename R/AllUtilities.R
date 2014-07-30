@@ -515,9 +515,44 @@ MHmakeRandomString <- function()
 }
 
 ##
-#new fSet
+.plotCoverage <- function (x, x1, start = 1, end = length(x), col = "yellow", col1="blue", xlab = "Index", ylab = "Coverage", breack.point=NULL, ylim=NULL){
+     xWindow <- as.vector(window(x, start, end))
+	 x1Window <- as.vector(window(x1, start, end))
+     x <- start:end
+     xlim <- c(start, end)
+	 if(length(ylim)==0){
+        ylim <- c(0, max(x1Window))
+	 }
+     plot(x = start, y = 0, xlim = xlim, ylim = ylim, xlab = xlab,ylab = ylab, type = "n")
+	 polygon(c(start, x, end), c(0, x1Window, 0), col = col1)
+	 polygon(c(start, x, end), c(0, xWindow, 0), col = col)
+	 abline(v=breack.point,lty=2, lwd=2, col="red")
+}						
 
-
-
-
-
+breakpointOverlaps <- function(fset, plot=FALSE, ylim=NULL){
+ if(length(fusionRNA(fset))==0){
+	 cat("\nMissinng fusion transcript information. See chimeraSeqs and addRNA functions\n")
+	 return()
+ }
+ if(length(fusionGA(fset))==0){
+	 cat("\nMissinng mapping reads information. See subreadRun and addGA functions\n")
+	 return()
+ }	 	
+ tmp <- names(fusionRNA(fset))
+ tmp <- strsplit(tmp, ":")
+ tmp <- tmp[[1]][1]
+ tmp <- strsplit(tmp, "-")
+ #length of tr1 insert till breakpoint
+ tmp <- as.numeric(tmp[[1]][2])
+ subj.ga <- fusionGA(fset)
+ tmp.ga <- GRanges(seqnames = as.character(seqnames(subj.ga[1])), ranges = IRanges(start = tmp, width= 1), strand = "+")
+ seqlengths(tmp.ga) <- seqlengths(subj.ga)
+ breakpoints <- findOverlaps(query=tmp.ga, subject=subj.ga,type = "within",select = "all", ignore.strand = TRUE)
+ bp.ga <- subj.ga[subjectHits(breakpoints)]
+ tmp1.cov <- coverage(subj.ga)[[1]]
+ tmp.cov <- coverage(bp.ga)[[1]]
+ if(plot){
+      .plotCoverage(tmp.cov, tmp1.cov, breack.point=tmp, ylim=ylim)
+ }
+ return(bp.ga)
+}     

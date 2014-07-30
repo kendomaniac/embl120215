@@ -1,5 +1,6 @@
-gapfillerRun <- function(fusion.fa, seed1, seed2, gapfiller=NULL, seed.ins=200, seed.var=50, block.length=5, overlap=20, max.length=5000, slack=7, k=6, global.mismatch=5, perc.identity=0.6){
-    alignments <- list()
+gapfillerRun <- function(fusion.fa, seed1, seed2, gapfiller=NULL, seed.ins=200, seed.var=50, block.length=5, overlap=20, max.length=5000, slack=30, k=6, global.mismatch=5){
+    perc.identity <- 0.6
+	alignments <- list()
     if(length(gapfiller)==0){
         chimeraDirLocation  <- path.package("chimera", quiet = FALSE)
         gapfiller.check <- grep("gapfiller",dir(chimeraDirLocation))
@@ -57,7 +58,7 @@ gapfillerRun <- function(fusion.fa, seed1, seed2, gapfiller=NULL, seed.ins=200, 
     mylist  <- gapfillerRun(tmp.fa, seed1=paste(tmp.file,"_R1.fastq",sep=""),  
     seed2=paste(tmp.file,"_R2.fastq",sep=""), gapfiller=NULL, seed.ins=200, 
     seed.var=50, block.length=5, overlap=20, max.length=5000, 
-    slack=7, k=6, global.mismatch=5, perc.identity=0.6)
+    slack=7, k=6, global.mismatch=5)
 	return(mylist)
 }
 gapfillerWrap <- function(chimeraSeqSet.out, bam, parallel=c(FALSE,TRUE)){
