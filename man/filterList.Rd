@@ -1,7 +1,7 @@
 \name{filterList}
 \alias{filterList}
 \title{A function to filter a list of fSet objects}
-\description{A function filtering a list of fSet objects on the basis of supporting reads or fusion names.}
+\description{A function filtering a list of fSet objects on the basis of various parameters.}
 \usage{filterList(x,type=c("supporting.reads","fusion.names", "intronic", "annotated.genes", "read.through","oncofuse"),oncofuse.output=NULL, query=NULL, oncofuse.type=c("g5CDS", "g3CDS", "g5g3CDS", "g5exon", "g3exon", "g5g3exon","passenger.prob", "expression.gain"), parallel=FALSE)}
 \arguments{
   \item{x}{a list of fSet object}
@@ -10,7 +10,7 @@
               fusion.names: a vector list of user defined fusion names,
               intronic: only fusion encompassing exon data are retained
               annotated.genes: only fusion encompassing two annotated genes are retained
-              read.through: only fusion different gene names are retained
+              read.through: only fusion with different gene names are retained
 			  oncofuse: using the output of oncofuseRun various filtering option can be applied using oncofuse.type and oncofuse.threshold}
   \item{oncofuse.output}{The output generated with oncofuseRun}
   \item{query}{query is a number. 

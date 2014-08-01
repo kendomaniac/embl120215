@@ -1,8 +1,8 @@
 \name{bam2fastq}
 \alias{bam2fastq}
-\title{A function to extract pair end reads from the bam file generated with subread function}
+\title{A function to extract pair end reads from the bam file generated with subreadRun function}
 \description{A function to extract pair end reads from the bam file generated with subread function. The output files are ready to
-be used for fusion validaiton with gapfiller}
+be used for fusion validation with gapfiller}
 \usage{bam2fastq(bam, filename="ready4gapfiller",ref,parallel=FALSE)}
 \arguments{
   \item{bam}{name of the bam file to be used for PE reads extraction}

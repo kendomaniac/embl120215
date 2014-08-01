@@ -39,7 +39,7 @@ The function \code{\link{prettyPrint}} converts the information stored in a list
 Package: \tab chimera\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
-Date: \tab 2012-10-16\cr
+Date: \tab 2014-31-07\cr
 License: \tab Artistic-2.0\cr
 }
 }

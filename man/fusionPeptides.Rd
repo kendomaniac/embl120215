@@ -1,7 +1,7 @@
 \name{fusionPeptides}
 \alias{fusionPeptides}
-\title{A function associating to a fusion the peptides involved.}
-\description{A function associate the donor and the acceptor peptides involved in the fusion.             
+\title{A function to investigate the peptides involved in the fusion event.}
+\description{A function extracting the donor and the acceptor peptides involved in the fusion.             
 }
 \usage{fusionPeptides(chimeraSeq.output, annotation="hsUCSC")}
 \arguments{
