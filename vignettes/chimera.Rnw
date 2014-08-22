@@ -342,7 +342,8 @@ In the following table are shown the data obtained, during chimera development, 
 <<>>==
 library(xtable)
 tp <- read.table(paste(find.package(package="chimera"),"/examples/edgren.stat.detection.txt",sep=""), sep="\t", header=T)
-xtable(tp, caption = 'Edgren validated fusions discovered by tools supported by chimera')
+my.table <- xtable(tp, caption = 'Edgren validated fusions discovered by tools supported by chimera')
+print(my.table)
 @
 Further comparison results are available at  \url{https://code.google.com/p/fusioncatcher/wiki/comparison} 
 The package comes with a set of data, present in the example folder, representing all the information needed to create an fSet object for the fusion SULF2:ARFGEF2 detected by FusionMap in the MCF7 dataset published by Edgren et al. Genome Biology 2011, 12:R6.
