@@ -1,0 +1,20 @@
+citEntry(entry="article",
+         title = "Chimera: a Bioconductor package for secondary analysis of fusion products.",
+         author = personList( as.person("Marco Beccuti"),
+		                      as.person("Matteo Carrara"),
+                              as.person("Francesca Cordero"),
+							  as.person("Fulvio Lazzarato"),
+							  as.person("Susanna Donatelli"),
+							  as.person("Francesca Nadalin"),
+							  as.person("Alerto Policriti"),
+							  as.person("Raffaele A Calogero")),
+         year = 2014,
+         journal = "Bioinformatics",
+         volume = 00,
+         pages = {1--2},
+         doi = "10.1093/bioinformatics/btu662",
+         textVersion = 
+         paste("Beccuti M, Carrara M, Cordero F, Lazzarato F, Donatelli S, Nadalin F, Policriti A, Calogero RA (2014):", 
+               "Chimera: a Bioconductor package for secondary analysis of fusion products.",
+               "Bioinformatics (2014) 1:2. doi:10.1093/bioinformatics/btu662" ) )
+
