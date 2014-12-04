@@ -2,8 +2,8 @@
 \alias{importFusionData}
 \title{A function to import fusion data detected by different fusion finders}
 \description{A function to import in a list fusions data detected by bellerophontes, defuse, fusionfinder, fusionhunter, mapsplice, tophat-fusion, fusionmap, chimerascan, STAR, Rsubread, fusionCatcher.
-In the case of chimerascan and STAR output it is possible to load the data applying a filter on the minimal number of reads supporting a specific fusion. Both chimerascan and STAR accept data generated using human hg19 and mouse mm9 reference. Star import function has a parallel option using BiocParallel package.
-IMPORTANT: please note that the it is important that the genome reference version used for the alignment is the same of that used for by chimera for annotation. Expecially between hg18 and hg19 there are many shifts in gene location.           
+In the case of chimerascan and STAR output it is possible to load the data applying a filter on the minimal number of reads supporting a specific fusion. Both chimerascan and STAR accept data generated using human hg19, hg38, mouse mm9 and mm10 reference. 
+IMPORTANT: please note that the it is important that the genome reference version used for the alignment is the same of that used for by chimera for annotation. Expecially between hg38 and hg19 there are shifts in gene location.           
 }
 \usage{importFusionData(format, filename, ...)}
 \arguments{
@@ -12,18 +12,18 @@ IMPORTANT: please note that the it is important that the genome reference versio
   \item{...}{Additional parameters:
    In case of rsubread min.distance, which indicates the minimal distance to consider a fusion within the same chromosome, is set to 700000 as default. 
    In case of rsubread, chimerascan and STAR min.support, which indicates the minimal number of reads supporting a specific fusion, is set to 10 as default. Please remember that using low values as min.support, e.g. 1, will significantly increase the time for data import. In this case is strongly suggested to run the function as batch and, when available, using the parallel option, see below.
-   In case of chimerascan, STAR, Rsubread, fusionmap, fusioncatcher org, which indicates the organism to be used for annotation, the options are hs or mm. Where hs select hg19 and mm selects mm9}
+   In case of chimerascan, STAR, Rsubread, fusionmap, fusioncatcher, tophat-fusion, tophat-fusion-post, mapsplice, bellerophontes org, which indicates the organism to be used for annotation, has the following options: hg19, hg38, mm9, mm10.}
    In case of STAR and Rsubread the upload can be parallelized using parallel=TRUE
 }
 \author{Raffaele A Calogero}
 \examples{
-    tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
+    tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hg19")
     #min.support allow to retrieve only the subset of fusions supported by a user defined minimal number of junction spanning reads
-    #tmp <- importFusionData("chimerascan", "edgren_cs10.bedpe", min.support=10, org="hs")
+    #tmp <- importFusionData("chimerascan", "edgren_cs10.bedpe", min.support=10, org="hg19")
     #download Edgren Chimeric.out.junction. This file encompass the results obtaines combined all cell lines used in Edgren experiment 
     #download.file("http://sourceforge.net/projects/ochguiextras/files/chimera/Chimeric.out.junction.zip/download", "Chimeric.out.junction.zip", mode="wb")
     #unzip("Chimeric.out.junction.zip")
-    #tmp <- importFusionData("star", "Chimeric.out.junction", org="hs", parallel=T, hist.file=NULL, min.support=100)
+    #tmp <- importFusionData("star", "Chimeric.out.junction", org="hg19", min.support=100)
 }
 \keyword{utilities}
 

@@ -5,6 +5,7 @@
 #.fhImport imports fusions from FusionHunter
 #.msImport imports fusions from MapSplice
 #.thfImport imports fusions from TopHat-fusion
+#.thfPostImport imports fusions from TopHat-fusion-post
 #.dfImport imports fusions from deFuse
 #.starImport imports fusions from star
 #.starFset creat fset from star data
@@ -18,6 +19,70 @@
 #supportingReads
 #fusionName
 
+.geneLevelAnnotation <- function(genome=c("hg19","mm9","hg38","mm10")){
+	if(genome=="hg19"){
+		TxDb.Mmusculus.UCSC.mm9.knownGene <- NULL
+		TxDb.Mmusculus.UCSC.mm10.knownGene <- NULL
+		TxDb.Hsapiens.UCSC.hg38.knownGene <- NULL
+		Mus.musculus <- NULL
+		BSgenome.Hsapiens.NCBI.GRCh38 <- NULL
+		txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+		genes.gr <- genes(txdb)
+		simbols.eg <- select(Homo.sapiens,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
+		if(identical(simbols.eg$GENEID, elementMetadata(genes.gr)$gene_id)){
+			     elementMetadata(genes.gr)$symbol <- simbols.eg$SYMBOL
+				 return(genes.gr)
+		}else{
+			cat("\nGENEID in Homo.sapiens are not aligned with GENEID in TxDb.Hsapiens.UCSC.hg19.knownGene\n")
+			return()
+		}
+	}else if(genome=="mm9"){
+		require(TxDb.Mmusculus.UCSC.mm9.knownGene)||stop("\nMissing TxDb.Mmusculus.UCSC.mm9.knownGene library\n")
+		txdb <- TxDb.Mmusculus.UCSC.mm9.knownGene
+		genes.gr <- genes(txdb)
+		require(Mus.musculus)||stop("\nMissing Mus.musculus library\n")
+		simbols.eg <- select(Mus.musculus,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
+		if(identical(simbols.eg$GENEID, elementMetadata(genes.gr)$gene_id)){
+			     elementMetadata(genes.gr)$symbol <- simbols.eg$SYMBOL
+				 return(genes.gr)
+		}else{
+			cat("\nGENEID in Mus.musculus are not aligned with GENEID in TxDb.Mmusculus.UCSC.mm9.knownGene\n")
+			return()
+		}
+	}else if(genome=="mm10"){
+		require(TxDb.Mmusculus.UCSC.mm10.knownGene)||stop("\nMissing TxDb.Mmusculus.UCSC.mm10.knownGene library\n")
+		txdb <- TxDb.Mmusculus.UCSC.mm10.knownGene
+		genes.gr <- genes(txdb)
+		require(Mus.musculus)||stop("\nMissing Mus.musculus library\n")
+		simbols.eg <- select(Mus.musculus,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
+		if(identical(simbols.eg$GENEID, elementMetadata(genes.gr)$gene_id)){
+			     elementMetadata(genes.gr)$symbol <- simbols.eg$SYMBOL
+				 return(genes.gr)
+		}else{
+			cat("\nGENEID in Mus.musculus are not aligned with GENEID in TxDb.Mmusculus.UCSC.mm10.knownGene\n")
+			return()
+		}
+	}else if(genome=="hg38"){
+		################################################################################
+		#da sistemare nelle funzioni giuste per il momento mi serve solo come remind
+		require(BSgenome.Hsapiens.NCBI.GRCh38)||stop("\nMissing BSgenome.Hsapiens.NCBI.GRCh38 library\n")
+		bs <- BSgenome.Hsapiens.NCBI.GRCh38
+		seqlevelsStyle(bs) <- "UCSC" ## convert to UCSC style
+		################################################################################
+		require(TxDb.Hsapiens.UCSC.hg38.knownGene)||stop("\nMissing TxDb.Hsapiens.UCSC.hg38.knownGene library\n")
+		txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
+		genes.gr <- genes(txdb)
+		require(Mus.musculus)||stop("\nMissing Mus.musculus library\n")
+		simbols.eg <- select(Mus.musculus,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
+		if(identical(simbols.eg$GENEID, elementMetadata(genes.gr)$gene_id)){
+			     elementMetadata(genes.gr)$symbol <- simbols.eg$SYMBOL
+				 return(genes.gr)
+		}else{
+			cat("\nGENEID in Mus.musculus are not aligned with GENEID in TxDb.Hsapiens.UCSC.hg38.knownGene\n")
+			return()
+		}
+	} 
+}
 
 importFusionData <- function(format, filename, ...)
 {
@@ -26,8 +91,9 @@ importFusionData <- function(format, filename, ...)
            "defuse" = .dfImport(filename),
            "fusionfinder" = .ffImport(filename),
            "fusionhunter" = .fhImport(filename),
-	       "mapsplice" = .msImport(filename),
-	       "tophat-fusion" = .thfImport(filename),
+	       "mapsplice" = .msImport(filename, ...),
+	       "tophat-fusion" = .thfImport(filename, ...),
+		   "tophat-fusion-post" = .thfImport(filename, ...),
 	       "chimerascan" = .csImport(filename, ...),
            "fusionmap" = .fmImport(filename, ...),
            "star" = .starImport(filename, ...),
@@ -39,11 +105,8 @@ importFusionData <- function(format, filename, ...)
 #import from subjunc of Rsubread package
 #tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=10)
 
-.rsImport <- function(fusion.report, org=c("hs","mm"), min.distance=700000, min.support=10, parallel=FALSE){
-	     org.Mm.egCHRLOC <- NULL
-		 org.Mm.egCHRLOCEND <- NULL
-		 org.Mm.egSYMBOL <- NULL
-		 Mmusculus <- NULL
+.rsImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10"), min.distance=700000, min.support=10, parallel=FALSE){
+	     Mmusculus <- NULL
          if(parallel){ 
            require(BiocParallel) || stop("\nMission BiocParallel library\n")
            p <- MulticoreParam()
@@ -60,51 +123,8 @@ importFusionData <- function(format, filename, ...)
 		})
 #		fusionreads.loc <- new("GAlignments")
 	    #loading annotation
-	if(org=="hs"){
-		chr.tmps <- as.list(org.Hs.egCHRLOC)
-		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-		eg.start <- names(chr.tmps)
-		chr.start <- sapply(chr.tmps, function(x)x[1])
-		chr.strand <- rep("+", length(chr.start))
-		chr.strand[which(chr.start < 0)] <- "-"
-		chr.start <- abs(chr.start)
-		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-		chr <- paste("chr", chr.tmpc, sep="")
-		chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-		eg.end <- names(chr.tmpe)
-		chr.end <- sapply(chr.tmpe, function(x)x[1])
-		chr.end <- abs(chr.end)
-		chr.sym <- as.list(org.Hs.egSYMBOL)
-		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-		#identical(names(chr.sym),eg.start)
-		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-		mychrs <- unique(as.character(seqnames(grHs)))
-		mychrs <- mychrs[1:24]
-		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-	}else if(org=="mm"){
-			chr.tmps <- as.list(org.Mm.egCHRLOC)
-			chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-			eg.start <- names(chr.tmps)
-			chr.start <- sapply(chr.tmps, function(x)x[1])
-			chr.strand <- rep("+", length(chr.start))
-			chr.strand[which(chr.start < 0)] <- "-"
-			chr.start <- abs(chr.start)
-			chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-			chr <- paste("chr", chr.tmpc, sep="")
-			chr.tmpe <- as.list(org.Mm.egCHRLOCEND)
-			chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-			eg.end <- names(chr.tmpe)
-			chr.end <- sapply(chr.tmpe, function(x)x[1])
-			chr.end <- abs(chr.end)
-			chr.sym <- as.list(org.Mm.egSYMBOL)
-			chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-			#identical(names(chr.sym),eg.start)
-			grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-			mychrs <- unique(as.character(seqnames(grHs)))
-			mychrs <- mychrs[1:20]
-			grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-		}
+		grHs <- .geneLevelAnnotation(genome=org)
+		
 		#creating object
 	 #   fusionreads.loc <- fusionreads.loc[[1]]
 	    cat("\n") 
@@ -116,18 +136,18 @@ importFusionData <- function(format, filename, ...)
             
 			tmpG1 <- findOverlaps(grG1, y, type = "any", select = "first", ignore.strand = T)
             if(!is.na(tmpG1)){
-                g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
+                g1 <- elementMetadata(grHs[tmpG1])$symbol            	
             }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
             
 			tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
             if(!is.na(tmpG2)){
-                g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
+                g2 <- elementMetadata(grHs[tmpG2])$symbol            	
             }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
 
-            if(org=="hs"){
+            if(org=="hg19"){
    		     fs.1 <- as.character(getSeq(Hsapiens, grG1))
    		     fs.2 <- as.character(getSeq(Hsapiens, grG2))		
-            }else if(org=="mm"){
+            }else if(org=="mm9"){
    	         require(BSgenome.Mmusculus.UCSC.mm9) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
    		     fs.1 <- as.character(getSeq(Mmusculus, grG1))
    		     fs.2 <- as.character(getSeq(Mmusculus, grG2))		
@@ -169,60 +189,12 @@ importFusionData <- function(format, filename, ...)
 
 
 #FusionMap import
-.fmImport <- function(fusion.report, org=c("hs","mm")){
-	    org.Mm.egCHRLOC <- NULL
-		org.Mm.egCHRLOCEND <- NULL
-		org.Mm.egSYMBOL <- NULL
+.fmImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10")){
 	    report <- read.table(fusion.report, sep="\t", header=T)
 #		fusionreads.loc <- new("GAlignments")
 	    #loading annotation
-	if(org=="hs"){
-		chr.tmps <- as.list(org.Hs.egCHRLOC)
-		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-		eg.start <- names(chr.tmps)
-		chr.start <- sapply(chr.tmps, function(x)x[1])
-		chr.strand <- rep("+", length(chr.start))
-		chr.strand[which(chr.start < 0)] <- "-"
-		chr.start <- abs(chr.start)
-		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-		chr <- paste("chr", chr.tmpc, sep="")
-		chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-		eg.end <- names(chr.tmpe)
-		chr.end <- sapply(chr.tmpe, function(x)x[1])
-		chr.end <- abs(chr.end)
-		chr.sym <- as.list(org.Hs.egSYMBOL)
-		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-		#identical(names(chr.sym),eg.start)
-		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-		mychrs <- unique(as.character(seqnames(grHs)))
-		mychrs <- mychrs[1:24]
-		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-	}else if(org=="mm"){
-			chr.tmps <- as.list(org.Mm.egCHRLOC)
-			chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-			eg.start <- names(chr.tmps)
-			chr.start <- sapply(chr.tmps, function(x)x[1])
-			chr.strand <- rep("+", length(chr.start))
-			chr.strand[which(chr.start < 0)] <- "-"
-			chr.start <- abs(chr.start)
-			chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-			chr <- paste("chr", chr.tmpc, sep="")
-			chr.tmpe <- as.list(org.Mm.egCHRLOCEND)
-			chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-			eg.end <- names(chr.tmpe)
-			chr.end <- sapply(chr.tmpe, function(x)x[1])
-			chr.end <- abs(chr.end)
-			chr.sym <- as.list(org.Mm.egSYMBOL)
-			chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-			#identical(names(chr.sym),eg.start)
-			grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-			mychrs <- unique(as.character(seqnames(grHs)))
-			mychrs <- mychrs[1:20]
-			grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-		}
-		#creating object
-	 #   fusionreads.loc <- fusionreads.loc[[1]]            	
+        grHs <- .geneLevelAnnotation(genome=org)		#creating object
+	 #  fusionreads.loc <- fusionreads.loc[[1]]            	
 	    fusionList <- list()
 	for(i in 1:dim(report)[1]){
 	  if(as.character(report$FusionJunctionSequence[i])!=""){	
@@ -237,23 +209,23 @@ importFusionData <- function(format, filename, ...)
 		 fs.1 <- fs.tmp[[1]][1]
 		 fs.tmp <- strsplit(as.character(report$FusionJunctionSequence[i]),"[A-Z]")
 		 fs.2 <- fs.tmp[[1]][length(fs.tmp[[1]])]
+		 
 		 #detecting genes involved in fusions
-		
          grG1 <-  GRanges(seqnames = paste("chr",report$Chromosome1[i],sep=""),
 		            ranges = IRanges(start = (report$Position1[i] - nchar(fs.1)), end= report$Position1[i]),
 		            strand = strand1)
          grG2 <-  GRanges(seqnames = paste("chr",report$Chromosome2[i],sep=""),
 					ranges = IRanges(start = report$Position2[i], end= (report$Position2[i] + nchar(fs.2))),
 				    strand = strand2)
+					
          tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
          if(!is.na(tmpG1)){
-         #    g1 <- paste(chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)], inconsistence, sep="")
-             g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
+             g1 <- elementMetadata(grHs[tmpG1])$symbol	            	
          }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
+		 
          tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
          if(!is.na(tmpG2)){
-         #    g2 <- paste(chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)], inconsistence, sep="")
-             g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
+			 g2 <- elementMetadata(grHs[tmpG2])$symbol	            	
          }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
 
          
@@ -467,7 +439,7 @@ importFusionData <- function(format, filename, ...)
 	   return(fusionList)
 }
 #tophat-fusion import
-.thfImport <- function(fusion.report){
+.thfImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10")){
 	    report <- read.table(fusion.report, sep="\t", header=F)
 	    if(dim(report)[2]!=23){
 		    cat("\nThe data structure does not seem to be that of tophat-fusion\n")
@@ -504,30 +476,8 @@ importFusionData <- function(format, filename, ...)
         #creating objects
         fusionList <- list()
         #loading annotation
-        chr.tmps <- as.list(org.Hs.egCHRLOC)
-        chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-        eg.start <- names(chr.tmps)
-        chr.start <- sapply(chr.tmps, function(x)x[1])
-        chr.strand <- rep("+", length(chr.start))
-        chr.strand[which(chr.start < 0)] <- "-"
-        chr.start <- abs(chr.start)
-        chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-        chr <- paste("chr", chr.tmpc, sep="")
-        chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-        chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-        eg.end <- names(chr.tmpe)
-        chr.end <- sapply(chr.tmpe, function(x)x[1])
-        chr.end <- abs(chr.end)
-        chr.sym <- as.list(org.Hs.egSYMBOL)
-        chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-        #identical(names(chr.sym),eg.start)
-#       grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end), strand = chr.strand, EG=eg.start)
-        grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-
-        mychrs <- unique(as.character(seqnames(grHs)))
-        mychrs <- mychrs[1:24]
-        grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-        for(i in 1:dim(report)[1]){
+        grHs <- .geneLevelAnnotation(genome=org)        
+		for(i in 1:dim(report)[1]){
 	     #   cat("\n",i)
 	        strand1 <- NULL
 		    strand2 <- NULL
@@ -561,11 +511,11 @@ importFusionData <- function(format, filename, ...)
             grG2 <-  GRanges(seqnames = chr2, ranges = IRanges(start = start2, end= end2), strand = strand2)
             tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
             if(!is.na(tmpG1)){
-                g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
+                g1 <- elementMetadata(grHs[tmpG1])$symbol	            	
             }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
             tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
             if(!is.na(tmpG2)){
-                g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
+                g2 <- elementMetadata(grHs[tmpG2])$symbol	            	
             }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
 
             gr1 <- GRanges(seqnames = chr1,
@@ -598,7 +548,111 @@ importFusionData <- function(format, filename, ...)
 	   return(fusionList)
 }
 
-.msImport <- function(fusion.report){
+#tophat-fusion import
+.thfPostImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10")){
+	    report <- read.table(fusion.report, sep="\t", header=F)
+	    if(dim(report)[2]!=11){
+		    cat("\nThe data structure does not seem to be that of tophat-fusion-post file\n")
+		    return()
+	    }
+	    names(report) <- c("SampleName","gene1", "gene1.chr", "gene1.fusion.loc", "gene2","gene2.chr","gene2.fusion.loc",
+		"spanning","encompassing", "encompassing.w.spanning","other")
+	#    fusionreads.loc <- new("GAlignments") 
+        #KnownGene1
+        g1 <- NA
+		#KnownGene2
+        g2 <- NA
+        #KnownTranscript1
+        t1 <- NA
+        #KnownTranscript2
+        t2 <- NA
+        #KnownExonNumber1
+        e1 <- NA
+        #KnownExonNumber2
+        e2 <- NA
+        #KnownTranscriptStrand1
+        ts1 <- NA
+        #KnownTranscriptStrand2
+        ts2 <- NA
+        #FusionJunctionSequence1-2
+        #SeedCount1-2
+        #UniqueCuttingPositionCount
+        cut <- 0
+        #SplicePattern
+        sp <- "-"
+        #frameShift
+        fs <- "-"
+        #creating objects
+        fusionList <- list()
+        #loading annotation
+        grHs <- .geneLevelAnnotation(genome=org) 
+        for(i in 1:dim(report)[1]){
+	     #   cat("\n",i)
+	        strand1 <- NULL
+		    strand2 <- NULL
+            #spanning reads		 
+	        seed1 <- report$encompassing.w.spanning[i]
+	        #RescuedCount encompassing.reads
+	        rc <- report$encompassing[i]
+	        #pos.tmp <- strsplit(as.character(report$chrs.fusion[i]), "-")
+	        #junction sequence1
+	        fs1 <- ""
+	        #defining start1
+	        #coverage1.tmp <- strsplit(as.character(report$coverage1[i]), " ")
+            start1 <- report$gene1.fusion.loc[i] - 30
+            end1 <- report$gene1.fusion.loc[i]
+            chr1 <- as.character(report$gene1.chr[i])
+	        #junction2
+		    fs2 <- ""
+		    #defining start2
+		    #coverage2.tmp <- strsplit(as.character(report$coverage2[i]), " ")
+	        start2 <- report$gene2.fusion.loc[i]
+            end2 <- report$gene2.fusion.loc[i] + 30
+            chr2 <- as.character(report$gene2.chr[i])
+            #defining gene1
+            grG1 <-  GRanges(seqnames = chr1, ranges = IRanges(start = start1, end= end1))
+            grG2 <-  GRanges(seqnames = chr2, ranges = IRanges(start = start2, end= end2))
+            tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
+            if(!is.na(tmpG1)){
+                g1 <- elementMetadata(grHs[tmpG1])$symbol            	
+            }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
+            tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
+            if(!is.na(tmpG2)){
+                g2 <- elementMetadata(grHs[tmpG2])$symbol            	
+            }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
+
+            gr1 <- GRanges(seqnames = chr1,
+			            ranges = IRanges(start = start1, end= end1),
+			         #   strand = strand1,
+			            KnownGene = as.character(g1),
+			            KnownTranscript =  t1,
+			            KnownExonNumber = e1,
+			            KnownTranscriptStrand = ts1,
+			            FusionJunctionSequence =  fs1)
+		     gr2 <- GRanges(seqnames = chr2,
+					   ranges = IRanges(start = start2, end= end2),
+				#	   strand = strand2,
+					   KnownGene = as.character(g2),
+					   KnownTranscript =  t2,
+					   KnownExonNumber = e2,
+					   KnownTranscriptStrand = ts2,
+					   FusionJunctionSequence =  fs2)
+			grl <- GRangesList("gene1" = gr1, "gene2" = gr2)
+			fusionData <- new("list", fusionTool="TopHat-fusion", 
+			                                 UniqueCuttingPositionCount=cut, 
+			                                 SeedCount=seed1, 
+			                                 RescuedCount=rc, 
+			                                 SplicePattern=sp,
+			                                 FusionGene=paste(g1,g2, sep="->"),
+			                                 frameShift=fs
+			)
+			fusionList[[i]] <- new("fSet",fusionInfo=fusionData,fusionLoc=grl, fusionRNA=new("DNAStringSet"))
+        }
+	   return(fusionList)
+}
+
+
+.msImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10")){
 	    flankcase.description <- seq(0,6)
 	    names(flankcase.description) <- c("others","ATAC","GTAT","CTGC","GCAG","GTAG","CTAC")
 	    report <- read.table(fusion.report, sep="\t", header=F, skip=1)
@@ -631,28 +685,7 @@ importFusionData <- function(format, filename, ...)
 		#creating objects
 		fusionList <- list()
 		#loading annotation
-		chr.tmps <- as.list(org.Hs.egCHRLOC)
-		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-		eg.start <- names(chr.tmps)
-		chr.start <- sapply(chr.tmps, function(x)x[1])
-		chr.strand <- rep("+", length(chr.start))
-		chr.strand[which(chr.start < 0)] <- "-"
-		chr.start <- abs(chr.start)
-		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-		chr <- paste("chr", chr.tmpc, sep="")
-		chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-		eg.end <- names(chr.tmpe)
-		chr.end <- sapply(chr.tmpe, function(x)x[1])
-		chr.end <- abs(chr.end)
-		chr.sym <- as.list(org.Hs.egSYMBOL)
-		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-		#identical(names(chr.sym),eg.start)
-		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-
-		mychrs <- unique(as.character(seqnames(grHs)))
-		mychrs <- mychrs[1:24]
-		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
+        grHs <- .geneLevelAnnotation(genome=org)		
 		for(i in 1:dim(report)[1]){
 			#SplicePattern
 			sp <- names(flankcase.description[which(flankcase.description == report$flank.case[i])])
@@ -682,11 +715,11 @@ importFusionData <- function(format, filename, ...)
             grG2 <-  GRanges(seqnames = chr2, ranges = IRanges(start = start2, end= end2), strand = strand2)
             tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
             if(!is.na(tmpG1)){
-                g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
+                g1 <- elementMetadata(grHs[tmpG1])$symbol	            	
             }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
             tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
             if(!is.na(tmpG2)){
-                g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
+                g2 <- elementMetadata(grHs[tmpG2])$symbol           	
             }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
 
             gr1 <- GRanges(seqnames = chr1,
@@ -912,7 +945,7 @@ importFusionData <- function(format, filename, ...)
 
 
 #bellerophontes import
-.bfImport <- function(fusion.report){
+.bfImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10")){
 	    report <- read.table(fusion.report, sep="\t", header=F, comment.char = "", fill=T)
 	    tmp1 <- report[seq(1, dim(report)[1], by=2),]
 	    names(tmp1) <- c("g1","strand1","g2","strand2", "Chromosome1", "start1","end1","Chromosome2", "start2","end2","supporting.reads")
@@ -943,28 +976,7 @@ importFusionData <- function(format, filename, ...)
 		#SplicePattern
 		sp <- "-"
 		#loading annotation
-		chr.tmps <- as.list(org.Hs.egCHRLOC)
-		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-		eg.start <- names(chr.tmps)
-		chr.start <- sapply(chr.tmps, function(x)x[1])
-		chr.strand <- rep("+", length(chr.start))
-		chr.strand[which(chr.start < 0)] <- "-"
-		chr.start <- abs(chr.start)
-		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-		chr <- paste("chr", chr.tmpc, sep="")
-		chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-		eg.end <- names(chr.tmpe)
-		chr.end <- sapply(chr.tmpe, function(x)x[1])
-		chr.end <- abs(chr.end)
-		chr.sym <- as.list(org.Hs.egSYMBOL)
-		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-		#identical(names(chr.sym),eg.start)
-		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-		mychrs <- unique(as.character(seqnames(grHs)))
-		mychrs <- mychrs[1:24]
-		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-		#creating object
+        grHs <- .geneLevelAnnotation(genome=org)		#creating object
 		fusionList <- list()
 		for(i in 1:dim(report)[1]){
 			 #    cat(i)
@@ -1001,11 +1013,11 @@ importFusionData <- function(format, filename, ...)
 				 }
 		         tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
 		         if(!is.na(tmpG1)){
-		             g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
+		             g1 <- elementMetadata(grHs[tmpG1])$symbol	            	
 		         }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
 		         tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
 		         if(!is.na(tmpG2)){
-		             g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
+		             g2 <- elementMetadata(grHs[tmpG2])$symbol	            	
 		         }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
                  if(report$end2[i] > report$start2[i] && report$end1[i] > report$start1[i]){
 			        gr1 <- GRanges(seqnames = as.character(report$Chromosome1[i]),
@@ -1073,12 +1085,8 @@ importFusionData <- function(format, filename, ...)
 			   return(fusionList)
 }
 #ChimeraScann import
-.csImport <- function(fusion.report, min.support=0, org=c("hs","mm")){
-	    org.Mm.egCHRLOC <- NULL
-		org.Mm.egCHRLOCEND <- NULL
-		org.Mm.egSYMBOL <- NULL
-		Mmusculus <- NULL
-		
+.csImport <- function(fusion.report, min.support=0, org=c("hg19","mm9","hg38","mm10")){
+	    Mmusculus <- NULL	    
 	    report <- read.table(fusion.report, sep="\t", header=F, quote ="")
 	    names(report) <- c("chrom5p", "start5p", "end5p", "chrom3p", "start3p", "end3p", "chimera_cluster_id", "score", "strand5p", "strand3p", "transcript_ids_5p", "transcript_ids_3p", "genes5p", "genes3p", "type", "distance", "total_frags", "spanning_frags", "unique_alignment_positions", "isoform_fraction_5p", "isoform_fraction_3p", "breakpoint_spanning_reads", "chimera_ids")
 		report <- report[which(as.numeric(report$spanning_frags) >= min.support),]
@@ -1088,55 +1096,8 @@ importFusionData <- function(format, filename, ...)
 			return()
 		}
 	#	fusionreads.loc <- new("GAlignments")
-	if(org=="hs"){
-	    #loading annotation
-		chr.tmps <- as.list(org.Hs.egCHRLOC)
-		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-		eg.start <- names(chr.tmps)
-		chr.start <- sapply(chr.tmps, function(x)x[1])
-		chr.strand <- rep("+", length(chr.start))
-		chr.strand[which(chr.start < 0)] <- "-"
-		chr.start <- abs(chr.start)
-		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-		chr <- paste("chr", chr.tmpc, sep="")
-		chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-		eg.end <- names(chr.tmpe)
-		chr.end <- sapply(chr.tmpe, function(x)x[1])
-		chr.end <- abs(chr.end)
-		chr.sym <- as.list(org.Hs.egSYMBOL)
-		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-		#identical(names(chr.sym),eg.start)
-		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-		mychrs <- unique(as.character(seqnames(grHs)))
-		mychrs <- mychrs[1:24]
-		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-	}else if(org=="mm"){
-		require(org.Mm.eg.db) || stop("\nMissing org.Mm.eg.db package\n")
-		chr.tmps <- as.list(org.Mm.egCHRLOC)
-		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-		eg.start <- names(chr.tmps)
-		chr.start <- sapply(chr.tmps, function(x)x[1])
-		chr.strand <- rep("+", length(chr.start))
-		chr.strand[which(chr.start < 0)] <- "-"
-		chr.start <- abs(chr.start)
-		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-		chr <- paste("chr", chr.tmpc, sep="")
-		chr.tmpe <- as.list(org.Mm.egCHRLOCEND)
-		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-		eg.end <- names(chr.tmpe)
-		chr.end <- sapply(chr.tmpe, function(x)x[1])
-		chr.end <- abs(chr.end)
-		chr.sym <- as.list(org.Mm.egSYMBOL)
-		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-		#identical(names(chr.sym),eg.start)
-		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-		mychrs <- unique(as.character(seqnames(grHs)))
-		mychrs <- mychrs[1:20]
-		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-		
-	}	
-#
+	#loading annotation
+        grHs <- .geneLevelAnnotation(genome=org) #
 	    fusionList <- list()
 	    for(i in 1:dim(report)[1]){
 		 strand1 <- as.character(report$strand5p[i])
@@ -1146,18 +1107,18 @@ importFusionData <- function(format, filename, ...)
          grG2 <-  GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = as.numeric(report$start3p[i]), end= (as.numeric(report$start3p[i]) + 30)), strand = strand2)
          tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
          if(!is.na(tmpG1)){
-             g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
+             g1 <- elementMetadata(grHs[tmpG1])$symbol	            	
          }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
          tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
          if(!is.na(tmpG2)){
-             g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
+             g2 <- elementMetadata(grHs[tmpG2])$symbol	            	
          }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
-         if(org=="hs"){
+         if(org=="hg19"){
 	         junctionG1 <-  GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = as.numeric(report$start5p[i]), end= as.numeric(report$end5p[i])), strand = strand1)
 	         junctionG2 <-  GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = as.numeric(report$start3p[i]), end= as.numeric(report$end3p[i])), strand = strand2)
 		     fs.1 <- as.character(getSeq(Hsapiens, junctionG1))
 		     fs.2 <- as.character(getSeq(Hsapiens, junctionG2))		
-         }else if(org=="mm"){
+         }else if(org=="mm9"){
 	         require(BSgenome.Mmusculus.UCSC.mm9) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
 	         junctionG1 <-  GRanges(seqnames = as.character(report$chrom5p[i]), ranges = IRanges(start = as.numeric(report$start5p[i]), end= as.numeric(report$end5p[i])), strand = strand1)
 	         junctionG2 <-  GRanges(seqnames = as.character(report$chrom3p[i]), ranges = IRanges(start = as.numeric(report$start3p[i]), end= as.numeric(report$end3p[i])), strand = strand2) 
@@ -1364,324 +1325,147 @@ importFusionData <- function(format, filename, ...)
     }
 }
 #############
-.starImport <- function(fusion.report, org=c("hs","mm"), parallel=FALSE, hist.file=NULL, min.support=10){
-	        org.Mm.egCHRLOC <- NULL
-	        org.Mm.egCHRLOCEND <- NULL
-	        org.Mm.egSYMBOL <- NULL
-	        
-	        if(parallel){ 
-		         require(BiocParallel) || stop("\nMission BiocParallel library\n")
-	             p <- MulticoreParam()
-	        }
-		    report <- read.table(fusion.report, sep="\t", header=F)
-		    names(report) <- c("gene1.chr","gene1.start", "gene1.strand", "gene2.chr","gene2.start", "gene2.strand","junction.type","repeat.left","repeat.right","reads.name","first.aligned.read1","read1.cigar","first.aligned.read2","read2.cigar")
-            #removing chrM
-            if(length(which(as.character(report$gene1.chr)=="chrM"))>0){
-	             cat("\nchrM is removed from fusion acceptor\n")
-            }
-            report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$gene1.chr)=="chrM")),]
-            if(length(which(as.character(report$gene2.chr)=="chrM"))>0){
-	             cat("\nchrM is removed from fusion donor\n")
-            }
-            report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$gene2.chr)=="chrM")),]
-            #removing non canonical chrs
-            chr.g1.l <- sapply(as.character(report$gene1.chr), nchar)
-            if(length(which(as.numeric(chr.g1.l) > 5)) >0){
-	                 removed <- as.character(unique(report$gene1.chr[which(as.numeric(chr.g1.l) > 5)]))
-	                 cat("\nThe following chrs were removed from fusion acceptor:\n",removed,"\n")
-            }
-            report <- report[which(as.numeric(chr.g1.l) <= 5),]
-            chr.g2.l <- sapply(as.character(report$gene2.chr), nchar)
-            if(length(which(as.numeric(chr.g2.l) > 5)) >0){
-	                 removed <- as.character(unique(report$gene2.chr[which(as.numeric(chr.g2.l) > 5)]))
-	                 cat("\nThe following chrs were removed from fusion donor:\n",removed,"\n")
-            }
-            report <- report[which(as.numeric(chr.g2.l) <= 5),]
-
-            r1.gr <- GRanges(seqnames = as.character(report$gene1.chr), 
-                              ranges = IRanges(start = as.numeric(report$first.aligned.read1), 
-                              end= as.numeric(report$first.aligned.read1)),  cigar=as.character(report$read1.cigar), junction.type=as.numeric(report$junction.type))
-            r2.gr <- GRanges(seqnames = as.character(report$gene2.chr), 
-                              ranges = IRanges(start = as.numeric(report$first.aligned.read2), 
-                              end= as.numeric(report$first.aligned.read2)),  cigar=as.character(report$read2.cigar), junction.type=as.numeric(report$junction.type))
-		    #the encompassing chimeric reads are marked with -1 in column junction.type, 
-		    #while spanning reads are marked with 0 for non-GT/AG introns, 1-GT/AG, 2-CT/AC.
-            spanning <- which(elementMetadata(r1.gr)$junction.type != -1)
-			if(length(spanning)==0){
-				cat("\nThe input file does not have any spanning read.\nYour fusion lacking of spanning reads are most probably artifacts\nThe analysis of fusions lacking spanning reads is not supported.\n")
-                return()
-			}
-			#r1r2.span <- setdiff(seq(1,length(r1.gr)), spanning) #erroneusly location of encompassing reads instead of spanning
-			r1r2.span <- spanning
-            
-            tmp.loc1 <- paste(as.character(report[,1]),report[,2],as.character(report[,3]), sep=":")
-            tmp.loc2 <- paste(as.character(report[,4]),report[,5],as.character(report[,6]), sep=":")
-            tmp.loc <- paste(tmp.loc1, tmp.loc2, sep="|")
-            tmp.loc.span <-  tmp.loc[r1r2.span]
-            tmp.loc1 <- NULL
-            tmp.loc2 <- NULL
-            # the function discard duplicated fusions 
-            tmp.loc1 <- tmp.loc[duplicated(tmp.loc)]
-			tmp.loc1 <- unique(tmp.loc1)
-			tmp.loc1 <- c(tmp.loc1, tmp.loc[!duplicated(tmp.loc)])
-			tmp.loc.u <- unique(tmp.loc1)
-			tmp.loc.u.span <- unique(tmp.loc.span)
-            if(parallel){
-	             tmp.loc.counts <- bplapply(tmp.loc.u, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
-	             tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
-	            #spanning
-	                tmp.loc.counts.span <- bplapply(tmp.loc.u.span, function(x,y) length(which(y==x)), y=tmp.loc1, BPPARAM=p)
-	                tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
-	        }else{ 
-                 tmp.loc.counts <- lapply(tmp.loc.u,function(x,y) length(which(y==x)), y=tmp.loc1)
-                 tmp.loc.counts <- as.numeric(unlist(tmp.loc.counts))
-	            #spanning
-                   tmp.loc.counts.span <- lapply(tmp.loc.u.span,function(x,y) length(which(y==x)), y=tmp.loc1)
-                   tmp.loc.counts.span <- as.numeric(unlist(tmp.loc.counts.span))
-            }
-            #at this point I have the supporting number of reads for fusions supported by more than one read
-            if(length(hist.file)>0){
-	               pdf("hist")
-	               hist(log10(tmp.loc.counts), xlab="log10 reads supporting fusions")
-	               abline(v=log10(min.support), col="red")
-	               dev.off()
-	               cat(paste("\nDistribution of fusions is saved in ",hist,"\n", sep=""))
-            }
-            #all
-            names(tmp.loc.counts) <- tmp.loc.u
-            tmp.loc.counts <- tmp.loc.counts[which(tmp.loc.counts >= min.support)]
-           #spanning
-            names(tmp.loc.counts.span) <- tmp.loc.u.span
-            tmp.loc.counts.span <- tmp.loc.counts.span[which(names(tmp.loc.counts.span)%in%names(tmp.loc.counts))]
-            tmp.loc.counts <- paste(names(tmp.loc.counts), tmp.loc.counts, sep="_")
-            tmp.loc.counts.span <- paste(names(tmp.loc.counts.span), tmp.loc.counts.span, sep="_")
-
-		    #loading annotation
-		if(org=="hs"){
-			chr.tmps <- as.list(org.Hs.egCHRLOC)
-			chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-			eg.start <- names(chr.tmps)
-			chr.start <- sapply(chr.tmps, function(x)x[1])
-			chr.strand <- rep("+", length(chr.start))
-			chr.strand[which(chr.start < 0)] <- "-"
-			chr.start <- abs(chr.start)
-			chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-			chr <- paste("chr", chr.tmpc, sep="")
-			chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-			chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-			eg.end <- names(chr.tmpe)
-			chr.end <- sapply(chr.tmpe, function(x)x[1])
-			chr.end <- abs(chr.end)
-			chr.sym <- as.list(org.Hs.egSYMBOL)
-			chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-			#identical(names(chr.sym),eg.start)
-			grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-			mychrs <- unique(as.character(seqnames(grHs)))
-			mychrs <- mychrs[1:24]
-			grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-		}else if(org=="mm"){
-			    require(org.Mm.eg.db) || stop("\nMissing org.Mm.eg.db package\n")
-				chr.tmps <- as.list(org.Mm.egCHRLOC)
-				chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-				eg.start <- names(chr.tmps)
-				chr.start <- sapply(chr.tmps, function(x)x[1])
-				chr.strand <- rep("+", length(chr.start))
-				chr.strand[which(chr.start < 0)] <- "-"
-				chr.start <- abs(chr.start)
-				chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-				chr <- paste("chr", chr.tmpc, sep="")
-				chr.tmpe <- as.list(org.Mm.egCHRLOCEND)
-				chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-				eg.end <- names(chr.tmpe)
-				chr.end <- sapply(chr.tmpe, function(x)x[1])
-				chr.end <- abs(chr.end)
-				chr.sym <- as.list(org.Mm.egSYMBOL)
-				chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-				#identical(names(chr.sym),eg.start)
-				grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end= chr.end),  EG=eg.start)
-				mychrs <- unique(as.character(seqnames(grHs)))
-				mychrs <- mychrs[1:20]
-				grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-			}
-			
-			if(parallel){
-	             fusionList <- bplapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
-				 if(length(fusionList)==0){
-					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
-					 return()
-				  }
-	             isfset <- sapply(fusionList, is.fSet)
-	             fusionList <- fusionList[isfset]
-				 if(length(fusionList)==0){
-					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
-					 return()
-				  }
-	             fusionList.span <- bplapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org, BPPARAM=p)
-                 if(length(fusionList.span)>0){
-	                 isfset <- sapply(fusionList.span, is.fSet)
-	                 fusionList.span <- fusionList.span[isfset]
-	                 counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=T)
-		             names.span <- fusionName(fusionList.span, parallel=T)
-		             names(counts.span) <- names.span
-		             names.all <- fusionName(fusionList, parallel=T)
-		             which.all <- which(names.all %in% names.span)
-                 }else{
-					 cat("\nThe data you have imputed do not contain any spanning read\nBe aware that those fusions might be false positives\nThe analysis of fusions lacking spanning reads is not supported.\n")
-					 return()
-	             #    fusionList.span <- fusionList
-	             #    counts.span <- rep(0, length(fusionList.span))
-		         #    names.span <- fusionName(fusionList.span, parallel=T)
-		         #    names(counts.span) <- names.span
-		         #    names.all <- fusionName(fusionList, parallel=T)
-		         #    which.all <- which(names.all %in% names.span)
-                 }
-	             #for test purposes
-    #            save(tmp.loc.counts,tmp.loc.counts.span,fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
-	             #
-	             for(i in 1:length(which.all)){
-		              seed.span <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
-		              if(length(seed.span)==1){
-		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span
-	                  }else if(length(seed.span)>1){
-			                     seed.span <- seed.span[!is.na(seed.span)]
-			                     if(length(seed.span)>0){
-			                          fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
-		                         }else{
-			                          fusionList[[i]]@fusionInfo$SeedCount <- NA
-		                         }
-		              }else{
-			                     fusionList[[i]]@fusionInfo$SeedCount <- NA
-		              }
-	             }
-	        }else{ 
-                 fusionList <- lapply(tmp.loc.counts, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
-				 if(length(fusionList)==0){
-					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
-					 return()
-				  }
-	             isfset <- sapply(fusionList, is.fSet)
-	             fusionList <- fusionList[isfset]
-				 if(length(fusionList)==0){
-					 cat(paste("\nThe data you have imputed do not contain any supporting reads, given the min.support = ",min.support,"\n",sep=""))
-					 return()
-				  }
-                 fusionList.span <- lapply(tmp.loc.counts.span, function(x,z,j,k) .starFset(x,z,j,k), z=grHs, j=chr.sym, k=org)
-                 if(length(fusionList.span)>0){
-	                 isfset <- sapply(fusionList.span, is.fSet)
-	                 fusionList.span <- fusionList.span[isfset]
-	                 counts.span <- supportingReads(fusionList.span, fusion.reads="all", parallel=F)
-		             names.span <- fusionName(fusionList.span, parallel=F)
-		             names(counts.span) <- names.span
-		             names.all <- fusionName(fusionList, parallel=F)
-		             which.all <- which(names.all %in% names.span)
-                 }else{
-					 cat("\nThe data you have imputed do not contain any spanning read\nBe aware that those fusions might be false positives\nThe analysis of fusions lacking spanning reads is not supported.\n")
-					 return()
-	                # fusionList.span <- fusionList
-	                # counts.span <- rep(0, length(fusionList.span))
-		            # names.span <- fusionName(fusionList.span, parallel=F)
-		            # names(counts.span) <- names.span
-		            # names.all <- fusionName(fusionList, parallel=F)
-		            # which.all <- which(names.all %in% names.span)
-                 }
-	             #for test purposes
-   #            save(tmp.loc.counts,tmp.loc.counts.span,fusionList, fusionList.span, counts.span, names.all, which.all, file="tmp.test.rda")
-	            #
-	            for(i in 1:length(which.all)){
-		              seed.span <- as.numeric(counts.span[which(names(counts.span) == names.all[i])])
-		              if(length(seed.span)==1){
-		                     fusionList[[i]]@fusionInfo$SeedCount <- seed.span
-	                  }else if(length(seed.span)>1){
-		                     seed.span <- seed.span[!is.na(seed.span)]
-		                     if(length(seed.span)>0){
-		                          fusionList[[i]]@fusionInfo$SeedCount <- seed.span[1]
-	                         }else{
-		                          fusionList[[i]]@fusionInfo$SeedCount <- NA
-	                         }
-	                  }else{
-		                     fusionList[[i]]@fusionInfo$SeedCount <- NA
-	                  }
-	             }
-            }
-            return(fusionList)
-}
-#.starFset(tmp.loc.counts, names(tmp.loc.counts))
-.starFset <- function(x, z, j, k, y){
-	Mmusculus <- NULL
-	org.Mm.egCHRLOC <- NULL
-	org.Mm.egCHRLOCEND <- NULL
-	org.Mm.egSYMBOL <- NULL
+.starImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10"), min.support=10){	        
+    tmp.file <- gsub(" ","_",date()) 
+    tmp.file <- sub("__","_",tmp.file)
+    tmp.file <- gsub(":","-",tmp.file) 
 	
-    tmp.x <- strsplit(x,"_")
-    counts <- as.numeric(tmp.x[[1]][2])
-    fusion <- tmp.x[[1]][1]
-    grHs <- z
-    chr.sym <- j
-    org <- k
-    fusion.tmp <- strsplit(fusion,"\\|")
-    fusion1 <- as.character(unlist(strsplit(fusion.tmp[[1]][1],":")))
-    fusion2 <- as.character(unlist(strsplit(fusion.tmp[[1]][2],":")))
-    strand1 <- fusion1[3]
-    strand2 <-fusion2[3]
-    #detecting genes involved in fusions
-    grG1 <-  GRanges(seqnames = fusion1[1], ranges = IRanges(start = (as.numeric(fusion1[2]) - 30), end= as.numeric(fusion1[2])), strand = strand1)
-    grG2 <-  GRanges(seqnames = fusion2[1], ranges = IRanges(start = as.numeric(fusion2[2]), end= (as.numeric(fusion2[2]) + 30)), strand = strand2)
-    tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
-    if(!is.na(tmpG1)){
-       g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]	            	
-    }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
-    tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
-    if(!is.na(tmpG2)){
-       g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]	            	
-    }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
+    .C("StarParser",2,c("program",fusion.report,tmp.file), PACKAGE = 'chimera')
 
-    if(org=="hs"){
-        fs.1 <- as.character(getSeq(Hsapiens, grG1))
-        fs.2 <- as.character(getSeq(Hsapiens, grG2))		
-    }else if(org=="mm"){
-        require(BSgenome.Mmusculus.UCSC.mm9) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
-        fs.1 <- as.character(getSeq(Mmusculus, grG1))
-        fs.2 <- as.character(getSeq(Mmusculus, grG2))			
+   report <- read.table(tmp.file, sep="\t", header=TRUE)
+    names(report) <- c("gene1.chr","gene1.fusion.loc","gene1.strand","gene2.chr","gene2.fusion.loc","gene2.strand","n.spanning","n.encompassing")
+	#removing chrM
+    if(length(which(as.character(report$gene1.chr)=="chrM"))>0){
+         cat("\nchrM is removed from fusion acceptor\n")
     }
-	tmpT1 <- ""
- 	tmpT2 <- ""
-    #exon number
-	tmpEn1 <- ""
-	tmpEn2 <- ""
-    # transcript strand
-	tmpTs1 <- ""
-	tmpTs2 <- ""
-    gr1 <- GRanges(seqnames = fusion1[1], ranges = IRanges(start = (as.numeric(fusion1[2]) - 30), end= as.numeric(fusion1[2])),
-            strand = strand1,
-            KnownGene = as.character(g1),
-            KnownTranscript =  tmpT1,
-            KnownExonNumber = tmpEn1,
-            KnownTranscriptStrand = tmpTs1,
-            FusionJunctionSequence =  fs.1)
-    gr2 <- GRanges(seqnames = fusion2[1], ranges = IRanges(start = as.numeric(fusion2[2]), end= (as.numeric(fusion2[2]) + 30)),
-		   strand = strand2,
-		   KnownGene = as.character(g2),
-		   KnownTranscript =  tmpT2,
-		   KnownExonNumber = tmpEn2,
-		   KnownTranscriptStrand = tmpTs2,
-		   FusionJunctionSequence =  fs.2)
-    grl <- GRangesList("gene1" = gr1, "gene2" = gr2)
-    fusionData <- new("list", fusionTool="STAR", 
-                                 UniqueCuttingPositionCount=NULL, 
-                                 SeedCount=as.numeric(counts), 
-                                 RescuedCount=as.numeric(counts), 
-                                 SplicePattern="",
-                                 FusionGene=paste(as.character(g1),as.character(g2), sep=":"),
-                                 frameShift=""
-    )
-    return(new("fSet",fusionInfo=fusionData,fusionLoc=grl, fusionRNA=new("DNAStringSet")))
-}		             
-####fusionCatcher
-.fcImport <- function(fusion.report, org=c("hs", "mm")){
-	org.Mm.egCHRLOC <- NULL
-	org.Mm.egCHRLOCEND <- NULL
-	org.Mm.egSYMBOL <- NULL
+    report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$gene1.chr)=="chrM")),]
+    if(length(which(as.character(report$gene2.chr)=="chrM"))>0){
+         cat("\nchrM is removed from fusion donor\n")
+    }
+    report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$gene2.chr)=="chrM")),]
+    #removing non canonical chrs
+    chr.g1.l <- sapply(as.character(report$gene1.chr), nchar)
+    if(length(which(as.numeric(chr.g1.l) > 5)) >0){
+             removed <- as.character(unique(report$gene1.chr[which(as.numeric(chr.g1.l) > 5)]))
+             cat("\nThe following chrs were removed from fusion acceptor:\n",removed,"\n")
+    }
+    report <- report[which(as.numeric(chr.g1.l) <= 5),]
+    chr.g2.l <- sapply(as.character(report$gene2.chr), nchar)
+    if(length(which(as.numeric(chr.g2.l) > 5)) >0){
+             removed <- as.character(unique(report$gene2.chr[which(as.numeric(chr.g2.l) > 5)]))
+             cat("\nThe following chrs were removed from fusion donor:\n",removed,"\n")
+    }
+    report <- report[which(as.numeric(chr.g2.l) <= 5),]
 	
+	#just a reminder of the star file structure
+    #the encompassing chimeric reads are marked with -1 in column junction.type, 
+    #while spanning reads are marked with 0 for non-GT/AG introns, 1-GT/AG, 2-CT/AC.
+	
+    report <- report[which(report$n.spanning >= min.support),]
+    if(sum(report$n.spanning) == 0){
+		cat("\nThe input file does not have any spanning read.\nYour fusion lacking of spanning reads are most probably artifacts\nThe analysis of fusions lacking spanning reads is not supported.\n")
+        return()
+	}
+	cat(paste("\nImporting ",dim(report)[1]," fusions\n", sep=""))
+    #loading annotation
+    
+    grHs <- .geneLevelAnnotation(genome=org)
+
+	#    fusionreads.loc <- new("GAlignments") 
+        #KnownGene1
+        g1 <- NA
+		#KnownGene2
+        g2 <- NA
+        #KnownTranscript1
+        t1 <- NA
+        #KnownTranscript2
+        t2 <- NA
+        #KnownExonNumber1
+        e1 <- NA
+        #KnownExonNumber2
+        e2 <- NA
+        #KnownTranscriptStrand1
+        ts1 <- NA
+        #KnownTranscriptStrand2
+        ts2 <- NA
+        #FusionJunctionSequence1-2
+        #SeedCount1-2
+        #UniqueCuttingPositionCount
+        cut <- 0
+        #SplicePattern
+        sp <- "-"
+        #frameShift
+        fs <- "-"
+        #creating objects
+        fusionList <- list()
+	    cat("\n")
+        for(i in 1:dim(report)[1]){
+			cat(".")
+	        strand1 <- as.character(report$gene1.strand[i])
+		    strand2 <- as.character(report$gene2.strand[i])
+            #spanning reads		 
+	        seed1 <- report$n.spanning[i]
+	        #RescuedCount encompassing.reads
+	        rc <- report$n.encompassing[i]
+	        #pos.tmp <- strsplit(as.character(report$chrs.fusion[i]), "-")
+	        #junction sequence1
+	        fs1 <- ""
+	        #defining start1
+	        #coverage1.tmp <- strsplit(as.character(report$coverage1[i]), " ")
+            start1 <- report$gene1.fusion.loc[i] - 30
+            end1 <- report$gene1.fusion.loc[i]
+            chr1 <- as.character(report$gene1.chr[i])
+	        #junction2
+		    fs2 <- ""
+		    #defining start2
+		    #coverage2.tmp <- strsplit(as.character(report$coverage2[i]), " ")
+	        start2 <- report$gene2.fusion.loc[i]
+            end2 <- report$gene2.fusion.loc[i] + 30
+            chr2 <- as.character(report$gene2.chr[i])
+            #defining gene1
+            grG1 <-  GRanges(seqnames = chr1, ranges = IRanges(start = start1, end= end1))
+            grG2 <-  GRanges(seqnames = chr2, ranges = IRanges(start = start2, end= end2))
+            tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
+            if(!is.na(tmpG1)){
+                g1 <- elementMetadata(grHs[tmpG1])$symbol	            	
+            }else{g1 <- paste(seqnames(grG1), paste(start(grG1),end(grG1), sep="-"),sep=":")}
+            tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand = T)
+            if(!is.na(tmpG2)){
+                g2 <- elementMetadata(grHs[tmpG2])$symbol	            	
+            }else{g2 <- paste(seqnames(grG2), paste(start(grG2),end(grG2), sep="-"),sep=":")}
+
+            gr1 <- GRanges(seqnames = chr1,
+			            ranges = IRanges(start = start1, end= end1),
+			            strand = strand1,
+			            KnownGene = as.character(g1),
+			            KnownTranscript =  t1,
+			            KnownExonNumber = e1,
+			            KnownTranscriptStrand = ts1,
+			            FusionJunctionSequence =  fs1)
+		     gr2 <- GRanges(seqnames = chr2,
+					   ranges = IRanges(start = start2, end= end2),
+					   strand = strand2,
+					   KnownGene = as.character(g2),
+					   KnownTranscript =  t2,
+					   KnownExonNumber = e2,
+					   KnownTranscriptStrand = ts2,
+					   FusionJunctionSequence =  fs2)
+			grl <- GRangesList("gene1" = gr1, "gene2" = gr2)
+			fusionData <- new("list", fusionTool="Star", 
+			                                 UniqueCuttingPositionCount=cut, 
+			                                 SeedCount=seed1, 
+			                                 RescuedCount=rc, 
+			                                 SplicePattern=sp,
+			                                 FusionGene=paste(g1,g2, sep="->"),
+			                                 frameShift=fs
+			)
+			fusionList[[i]] <- new("fSet",fusionInfo=fusionData,fusionLoc=grl, fusionRNA=new("DNAStringSet"))
+        }
+		cat("\n")
+	   return(fusionList)
+}
+####fusionCatcher
+.fcImport <- function(fusion.report, org=c("hg19","mm9","hg38","mm10")){
 	report <- read.table(fusion.report, sep="\t", header=TRUE)
 	
 	#KnownTranscript1
@@ -1697,49 +1481,8 @@ importFusionData <- function(format, filename, ...)
 	#KnownTranscriptStrand2
 	ts2 <- NA
 
-	if(org=="hs"){
-		chr.tmps <- as.list(org.Hs.egCHRLOC)
-		chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-		eg.start <- names(chr.tmps)
-		chr.start <- sapply(chr.tmps, function(x)x[1])
-		chr.strand <- rep("+", length(chr.start))
-		chr.strand[which(chr.start < 0)] <- "-"
-		chr.start <- abs(chr.start)
-		chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-		chr <- paste("chr", chr.tmpc, sep="")
-		chr.tmpe <- as.list(org.Hs.egCHRLOCEND)
-		chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-		eg.end <- names(chr.tmpe)
-		chr.end <- sapply(chr.tmpe, function(x)x[1])
-		chr.end <- abs(chr.end)
-		chr.sym <- as.list(org.Hs.egSYMBOL)
-		chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-		grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end = chr.end), EG=eg.start)
-		mychrs <- unique(as.character(seqnames(grHs)))
-		mychrs <- mychrs[1:24]
-		grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-	}else if(org=="mm"){
-		chr.tmps <- as.list(org.Mm.egCHRLOC)
-                chr.tmps <- chr.tmps[!is.na(chr.tmps)]
-                eg.start <- names(chr.tmps)
-                chr.start <- sapply(chr.tmps, function(x)x[1])
-                chr.strand <- rep("+", length(chr.start))
-                chr.strand[which(chr.start < 0)] <- "-"
-                chr.start <- abs(chr.start)
-                chr.tmpc <- sapply(chr.tmps, function(x)names(x[1]))
-                chr <- paste("chr", chr.tmpc, sep="")
-                chr.tmpe <- as.list(org.Mm.egCHRLOCEND)
-                chr.tmpe <- chr.tmpe[!is.na(chr.tmpe)]
-                eg.end <- names(chr.tmpe)
-                chr.end <- sapply(chr.tmpe, function(x)x[1])
-                chr.end <- abs(chr.end)
-                chr.sym <- as.list(org.Mm.egSYMBOL)
-                chr.sym <- chr.sym[which(names(chr.sym)%in%eg.start)]
-                grHs <- GRanges(seqnames = chr, ranges = IRanges(start = chr.start, end = chr.end), EG=eg.start)
-                mychrs <- unique(as.character(seqnames(grHs)))
-                mychrs <- mychrs[1:20]
-                grHs <- grHs[which(as.character(seqnames(grHs))%in%mychrs)]
-	}
+    grHs <- .geneLevelAnnotation(genome=org)	
+	
 	fusionList <- list()
 	for(i in 1:dim(report)[1]){
 		fs.tmp <- strsplit(as.character(report$Fusion_sequence[i]), split="\\*")
@@ -1752,13 +1495,13 @@ importFusionData <- function(format, filename, ...)
 		grG2 <- GRanges(seqnames = paste("chr", gene2_pos[1], sep=""), ranges = IRanges(start = as.numeric(gene2_pos[2]), end = (as.numeric(gene2_pos[2]) + nchar(fs.2))), strand = gene2_pos[3])
 		tmpG1 <- findOverlaps(grG1, grHs, type = "any", select = "first", ignore.strand = T)
 		if(!is.na(tmpG1)){
-			g1 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG1])$EG)]
+			g1 <- elementMetadata(grHs[tmpG1])$symbol
 		}else{
 			g1 <- paste(seqnames(grG1), paste(start(grG1), end(grG1), sep="-"), sep=":")
 		}
 		tmpG2 <- findOverlaps(grG2, grHs, type = "any", select = "first", ignore.strand=T)
 		if(!is.na(tmpG2)){
-			g2 <- chr.sym[which(names(chr.sym) == elementMetadata(grHs[tmpG2])$EG)]
+			g2 <- elementMetadata(grHs[tmpG2])$symbol
 		}else{
 			g2 <- paste(seqnames(grG2), paste(start(grG2), end(grG2), sep="-"), sep=":")
 		}

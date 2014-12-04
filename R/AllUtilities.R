@@ -1,6 +1,7 @@
 
+
 ###
-filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "annotated.genes", "read.through", "oncofuse"),oncofuse.output=NULL, query=NULL, oncofuse.type=c("g5CDS", "g3CDS", "g5g3CDS", "g5exon", "g3exon", "g5g3exon", "passenger.prob", "expression.gain"), parallel=FALSE){
+filterList <- function(x,type=c("spanning.reads","fusion.names", "intronic", "annotated.genes", "read.through", "oncofuse"),oncofuse.output=NULL, query=NULL, oncofuse.type=c("g5CDS", "g3CDS", "g5g3CDS", "g5exon", "g3exon", "g5g3exon", "passenger.prob", "expression.gain"), parallel=FALSE){
        if(type=="fusion.names"){
 	       if(!is.character(query)){
 		        cat("\nfiltering by fusion names needs to pass to the method vector of character names\n")
@@ -16,7 +17,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 			     loc <- which(tmp %in% query)
 		   }
        }
-       if(type=="supporting.reads"){
+       if(type=="spanning.reads"){
 	       if(!is.numeric(query)){
 		        cat("\nfiltering by supporting reads needs to pass to the method a numerical reads threshold\n")
 		        return()
@@ -251,7 +252,7 @@ filterList <- function(x,type=c("supporting.reads","fusion.names", "intronic", "
 
 
 
-supportingReads <- function(list, fusion.reads=c("all","spanning"), parallel=FALSE){
+supportingReads <- function(list, fusion.reads=c("encompassing","spanning"), parallel=FALSE){
 	tmp <- list
 	if(parallel){
 	     require(BiocParallel) || stop("\nMission BiocParallel library\n")
@@ -268,7 +269,7 @@ supportingReads <- function(list, fusion.reads=c("all","spanning"), parallel=FAL
 	            nsr <- as.numeric(unlist(nsr))
 	     }
     }else{
-	    if(fusion.reads=="all"){
+	    if(fusion.reads=="encompassing"){
                 nsr <- sapply(tmp, function(x) x@fusionInfo$RescuedCount)
 				length.nsr <- sapply(nsr, length)
                 nsr[which(length.nsr == 0)] <- 0

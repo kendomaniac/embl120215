@@ -5,7 +5,7 @@
 \title{A package for secondary analysis of fusion products}
 
 \description{
-The package imports fusion results from tophat-fusion, mapSplice, deFuse, fusionmap, bellerophontes, fusionfinder, fusionhunter, STAR, Rsubread, fusionCatcher.
+The package imports fusion results from tophat-fusion, tophat-fusion-post, mapSplice, deFuse, fusionmap, bellerophontes, fusionfinder, fusionhunter, STAR, Rsubread, fusionCatcher.
 The package was design to facilitate the characterisation of fusion products events.
 Data upload:
 outputs for the above indicated fusion detection tools can be imported using \code{\link{importFusionData}} in a list of \code{\link{fSet}}  objects.

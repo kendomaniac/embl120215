@@ -1,13 +1,13 @@
 Package: chimera
 Type: Package
 Title: A package for secondary analysis of fusion products
-Version: 1.9.1
-Date: 14 October 2014
+Version: 1.9.2
+Date: 03 December 2014
 Author: Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero 
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
-Depends:  Biobase, GenomicRanges (>= 1.13.3), Rsamtools (>= 1.13.1), GenomicAlignments, methods, AnnotationDbi, org.Hs.eg.db, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene
+Depends:  Biobase, GenomicRanges (>= 1.13.3), Rsamtools (>= 1.13.1), GenomicAlignments, methods, AnnotationDbi, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene, Homo.sapiens
 Suggests: BiocParallel, Rbowtie, geneplotter
-Enhances: Rsubread, BSgenome.Mmusculus.UCSC.mm9, TxDb.Mmusculus.UCSC.mm9.knownGene, org.Mm.eg.db
+Enhances: Rsubread, BSgenome.Mmusculus.UCSC.mm9, TxDb.Mmusculus.UCSC.mm9.knownGene, BSgenome.Mmusculus.UCSC.mm10, TxDb.Mmusculus.UCSC.mm10.knownGene, Mus.musculus, BSgenome.Hsapiens.NCBI.GRCh38, TxDb.Hsapiens.UCSC.hg38.knownGene
 Description: This package facilitates the characterisation of fusion products events. It allows to import fusion data results from the following fusion finders:  chimeraScan, bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap, STAR, Rsubread, fusionCatcher.
 biocViews: Infrastructure
 SystemRequirements: STAR, TopHat, bowtie and samtools are required for some functionalities 

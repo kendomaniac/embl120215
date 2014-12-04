@@ -15,12 +15,12 @@ the list generated using importFusionData function.
 }
 \author{Raffaele A Calogero}
 \examples{
-	tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
+	tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hg19")
 	fusion.names <- fusionName(tmp)
 	fusion.names
 	myset <- tmp[1:3]
 	tmp.seq <- chimeraSeqSet(myset, parallel=FALSE)
-	#sapply(tmp.seq, function(x){writeXStringSet(x, "detected.fusions.fa", format="fasta", append=TRUE)})
+#   sapply(tmp.seq, function(x){writeXStringSet(x, "detected.fusions.fa", format="fasta", append=TRUE)})
 }
 
 \seealso{\code{\link{fusionName}, \link{importFusionData}, \link{gapfillerInstallation}, \link{gapfillerRun}}}

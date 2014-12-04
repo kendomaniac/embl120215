@@ -27,7 +27,7 @@ processing it}
 		fusionTool: the tool that has generated the fusions
 		UniqueCuttingPositionCount: the number of unique cutting positions detected for the fusion.
 		SeedCount: the number of reads overlapping the break-point, i.e. spanning reads (FusionMap, FusionHunter, mapSplice, Tophat-fusion, ChimeraScan, STAR, Rsubread, FusionCatcher). Both spanning and encompassing reads (Bellerophontes, FusionFinder). Encompassing reads, i.e. one read of a pair on gene 1, and the other on gene2 (deFuse).
-		RescuedCount: the number of reads overlapping the break-point rescued after identification of the break point (FusionMap). Encompassing reads (Tophat-fusion, FusionCatcher). Both spanning and encompassing reads (ChimeraScan, STAR, Rsubread).
+		RescuedCount: the number of reads overlapping the break-point rescued after identification of the break point (FusionMap). Encompassing reads (Tophat-fusionm Tophat-fusion-post, FusionCatcher, STAR). Both spanning and encompassing reads (ChimeraScan, Rsubread).
 		SplicePattern: the splice pattern for a fusion junction
 		FusionGene: the name of the fusion gene in the format gene1 -> gene2.
 		frameShift: frameshift at break-point
@@ -72,7 +72,7 @@ processing it}
 \author{Raffaele A Calogero}
 \examples{
 #creating a fusion report from output of fusionMap
-tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
+tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hg19")
 #extracting the fusions names
 fusion.names <- fusionName(tmp)
 fusion.names

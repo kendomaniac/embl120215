@@ -19,7 +19,7 @@
 \begin{document}
 \title{Chimera}
 \author{Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero}
-\date{August 1 2014}
+\date{December 2 2014}
 \maketitle
 
 \section{Introduction}
@@ -86,7 +86,7 @@ The method \textit{addGA}, given a fSet object, allows to add the GAlignments of
 #creating a fusion report from output of fusionMap
 library(chimera)
 tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),
-"/examples/mcf7.FMFusionReport", sep=""), org="hs")
+"/examples/mcf7.FMFusionReport", sep=""), org="hg19")
 #extracting the fSet object for one of the fusions
 myset <- tmp[[13]]
 #constructing the fused sequence(s)
@@ -107,7 +107,7 @@ The function \textit{importFusionData}  allows to import in a list outputs gener
 
 The function \textit{supportingReads} allows to extract the number of reads supporting each of the detected fusions. It is notable that the same fusion gene is detected with a different number of supporting read depending on the fusion tool used. Furthermore, each tool detects a different number of fusions when querying the same data set. same apply to the supporting reads.
 <<>>==
-supporting.reads <- supportingReads(tmp, fusion.reads="all")
+supporting.reads <- supportingReads(tmp, fusion.reads="encompassing")
 supporting.reads
 @
 
@@ -144,7 +144,7 @@ The function \textit{filterList} allows to filter a list of fSet objects on the 
 Furthermore it is possible to remove read-through events, i.e. fusion in which different exons of the same gene are recognised as a fusion being separated by extremely long introns. It is also possible to retain only fusions in which only annotated names are considered, eg. PID1:TP53 is retained and PID1:chr2:133038625-133038655 is removed.
 <<>>==
 tmp1 <- filterList(tmp, type="fusion.names", fusion.names[c(1,3,7)])
-tmp2 <- filterList(tmp, type="supporting.reads", 2)
+tmp2 <- filterList(tmp, type="spanning.reads", 2)
 #tmp3 <- filterList(tmp, type="intronic")
 tmp4 <- filterList(tmp, type="annotated.genes")
 tmp5 <- filterList(tmp, type="read.through")
@@ -155,7 +155,7 @@ Coverage can be visualised with the function \textit{plotCoverage}. Below three 
 
 <<>>==
 tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),
-"/examples/mcf7.FMFusionReport", sep=""), org="hs")
+"/examples/mcf7.FMFusionReport", sep=""), org="hg19")
 fusion.names <- fusionName(tmp)
 myset <- tmp[[13]]
 trs <- chimeraSeqs(myset, type="transcripts")
@@ -217,7 +217,7 @@ Since experimental validation is a long and realatively expensive procedure it i
 GapFiller is seed-and-extend local assembler, which carefully detects reliable overlaps and operates clustering similar reads in order to reconstruct the missing part between the two ends of the same insert. Thus is perfect to see if a set of reads mapping over a putative fusion transcript are also able to de novo reconstruct the fusion junction. Below are shown the steps we suggest for the identification of a robust set of fusion events.
 \begin{Sinput}
 #importing fusion from your favorite program, e.g. ChimeraScan. 
-fusions <- importFusionData("chimerascan", 'chimeras.bedpe', org="hs")
+fusions <- importFusionData("chimerascan", 'chimeras.bedpe', org="hg19")
 \end{Sinput} 
 On the basis of our work [Carrara et al BMC Bioinformatics. 2013;14 Suppl 7:S2.; Carrara et al. Biomed Res Int. 2013;2013:340620]
 the best performing fusion detection tool, between those tested, is ChimeraScan. It detectes most of the true positive events also in  the correct orientation, but brings a significant number of false positive.
@@ -225,7 +225,7 @@ One of the experimental approaches we used to moderate the number of false posit
 \begin{Sinput}
 #retain only fusions supported by at least 1 reads 
 #spanning over the fusion junction.	
-fusions <- filterList(fusions, type="supporting.reads", 1)
+fusions <- filterList(fusions, type="spanning.reads", 1)
 #retain only fusions encompassing coding annotated genes
 fusions <- filterList(fusions, type="annotated.genes")
 #filter fusion events to remove those including intronic sequences. 
@@ -263,7 +263,7 @@ The final step is the confirmation of a unique open reading frame encompassing t
 \section{Oncofuse}
 Oncofuse is a naive bayesian classifier designed to predict the oncogenic potential of fusion genes found by Next-Generation Sequencing in cancer cells (Shugay et al. Bioinformatics 2013,29:2539-2546). Its goal is to identify those fusion sequences with higher probability of being driver than passenger events. The function \textit{oncofuseInstallation} installs the java Oncofuse program in a folder inside chimera path. The function \textit{oncofuseRun} will execute Oncofuse using as input a list of fSets. The output provided is a dataframe with the output of Oncofuse. Of particular interest are the dataframe fields: DRIVER PROB which provides a pvalue for the probability that the fusion will be deleterious and the annotations fields, DOMAINS RETAINED and DOMAINS BROKEN providing information on the type of protein domains affected by the fusion event.
 \begin{Sinput} 
-tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hs")
+tmp <- importFusionData("fusionmap", paste(find.package(package="chimera"),"/examples/mcf7.FMFusionReport", sep=""), org="hg19")
 installOncofuse()
 of.out <- oncofuseRun(tmp, tissue="EPI")
 \end{Sinput} 
@@ -328,10 +328,10 @@ $STAR_FOLDER/STARstatic --genomeDir $STAR_GENOME --readFilesIn $FASTQ1 $FASTQ2 -
 ##STEP2: On the unmapped fastq generated from STAR mapping script (above)
 library(Rsubread)
 subjunc("/home/calogero/bin/genome/rsubread.hg19/hg19", "spike4_Unmapped.out.mate1", "spike4_Unmapped.out.mate2", output_file="spike4_subread.bam", output_format="BAM",nthreads=64,reportAllJunctions=TRUE)
-tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=2, parallel=T)
+tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hg19", min.support=2, parallel=T)
 
 ##STEP3: Importing fusions in R
-tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hs", min.support=10)
+tmp <- importFusionData("rsubread","spike4_subread.bam.fusion.txt", org="hg19", min.support=10)
  
 \end{Sinput} 
 

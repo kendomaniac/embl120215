@@ -21,7 +21,7 @@ The list is made of:
 }
 \author{Raffaele A Calogero}
 \examples{
-#tmp <- importFusionData("star", "Chimeric.out.junction", org="hs", parallel=T, hist.file=NULL, min.support=100)
+#tmp <- importFusionData("star", "Chimeric.out.junction", org="hg19", min.support=100)
 #myset <- tmp[1:4]
 #tmp.seq <- chimeraSeqsSet(myset, type="transcripts")
 #tmp <- gapfillerWrap(chimeraSeqSet.out=trsx, bam="accepted_hits_mapped.bam", parallel=c(FALSE,TRUE))
