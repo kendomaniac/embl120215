@@ -25,7 +25,9 @@
 		TxDb.Mmusculus.UCSC.mm10.knownGene <- NULL
 		TxDb.Hsapiens.UCSC.hg38.knownGene <- NULL
 		Mus.musculus <- NULL
+		Homo.sapiens <- NULL
 		BSgenome.Hsapiens.NCBI.GRCh38 <- NULL
+		
 		txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
 		genes.gr <- genes(txdb)
 		simbols.eg <- select(Homo.sapiens,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
@@ -63,17 +65,10 @@
 			return()
 		}
 	}else if(genome=="hg38"){
-		################################################################################
-		#da sistemare nelle funzioni giuste per il momento mi serve solo come remind
-		require(BSgenome.Hsapiens.NCBI.GRCh38)||stop("\nMissing BSgenome.Hsapiens.NCBI.GRCh38 library\n")
-		bs <- BSgenome.Hsapiens.NCBI.GRCh38
-		seqlevelsStyle(bs) <- "UCSC" ## convert to UCSC style
-		################################################################################
 		require(TxDb.Hsapiens.UCSC.hg38.knownGene)||stop("\nMissing TxDb.Hsapiens.UCSC.hg38.knownGene library\n")
 		txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
 		genes.gr <- genes(txdb)
-		require(Mus.musculus)||stop("\nMissing Mus.musculus library\n")
-		simbols.eg <- select(Mus.musculus,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
+		simbols.eg <- select(Homo.sapiens,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
 		if(identical(simbols.eg$GENEID, elementMetadata(genes.gr)$gene_id)){
 			     elementMetadata(genes.gr)$symbol <- simbols.eg$SYMBOL
 				 return(genes.gr)
@@ -116,6 +111,42 @@ importFusionData <- function(format, filename, ...)
 		good2 <- report[which(as.character(report$X.Chr)==as.character(report$Chr)),]
 		good2 <- good2[which(abs(good2$Location - good2$Location.1)>= min.distance),]
 		report <- rbind(good1,good2)
+		
+		#removing chrM
+	    if(length(which(as.character(report$X.Chr)=="chrM"))>0){
+	         cat("\nchrM is removed from fusion acceptor\n")
+			 report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$X.Chr)=="chrM")),]
+	    }
+	    if(length(which(as.character(report$Chr)=="chrM"))>0){
+	         cat("\nchrM is removed from fusion donor\n")
+			 report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$Chr)=="chrM")),]
+	    }
+	    #removing non canonical chrs1
+	    chr.g1.l <- sapply(as.character(report$X.Chr), nchar)
+	    if(length(which(as.numeric(chr.g1.l) > 5)) >0){
+	             removed <- as.character(unique(report$X.Chr[which(as.numeric(chr.g1.l) > 5)]))
+	             cat("\nThe following chrs were removed from fusion acceptor:\n",removed,"\n")
+				 report <- report[which(as.numeric(chr.g1.l) <= 5),]
+	    }
+	    
+	    chr.g2.l <- sapply(as.character(report$Chr), nchar)
+	    if(length(which(as.numeric(chr.g2.l) > 5)) >0){
+	             removed <- as.character(unique(report$Chr[which(as.numeric(chr.g2.l) > 5)]))
+	             cat("\nThe following chrs were removed from fusion donor:\n",removed,"\n")
+				 report <- report[which(as.numeric(chr.g2.l) <= 5),]
+	    }
+	    #removing non canonical chrs2
+#	    if(length(setdiff(seq(1, dim(report)[1]),grep("chr",as.character(report$X.Chr))))>0){
+#			 removed <- as.character(unique(report$X.Chr[setdiff(seq(1, dim(report)[1]),grep("chr",as.character(report$X.Chr))]))
+#	         cat("\nThe following chrs were removed from fusion donor:\n",removed,"\n")
+#			 report <- report[grep("chr",as.character(report$X.Chr), ]
+#	    }
+#	    if(length(setdiff(seq(1, dim(report)[1]),grep("chr",as.character(report$Chr))))>0){
+#		      removed <- as.character(unique(report$Chr[setdiff(seq(1, dim(report)[1]),grep("chr",as.character(report$Chr))]))
+#              cat("\nThe following chrs were removed from fusion acceptor:\n",removed,"\n")
+#			  report <- report[grep("chr",as.character(report$Chr), ]
+#	    }
+	    		
 		report <- report[which(report$nSupport >= min.support),]
 		cat(paste("\n",dim(report)[1]," detected fusions\n",sep=""))
 		report <- apply(report, 1, function(x){
@@ -151,6 +182,19 @@ importFusionData <- function(format, filename, ...)
    	         require(BSgenome.Mmusculus.UCSC.mm9) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
    		     fs.1 <- as.character(getSeq(Mmusculus, grG1))
    		     fs.2 <- as.character(getSeq(Mmusculus, grG2))		
+            }else if(org=="mm10"){
+   	         require(BSgenome.Mmusculus.UCSC.mm10) || stop("\nMissing BSgenome.Mmusculus.UCSC.mm9 library\n")
+   		     fs.1 <- as.character(getSeq(Mmusculus, grG1))
+   		     fs.2 <- as.character(getSeq(Mmusculus, grG2))		
+            }else if(org=="hg38"){
+	 		    ################################################################################
+	 		    #da sistemare nelle funzioni giuste per il momento mi serve solo come remind
+	 		    require(BSgenome.Hsapiens.NCBI.GRCh38)||stop("\nMissing BSgenome.Hsapiens.NCBI.GRCh38 library\n")
+	 		    Hsapiens <- BSgenome.Hsapiens.NCBI.GRCh38
+	 		    seqlevelsStyle(Hsapiens) <- "UCSC" ## convert to UCSC style
+	 		    ################################################################################
+   		        fs.1 <- as.character(getSeq(Hsapiens, grG1))
+   		        fs.2 <- as.character(getSeq(Hsapiens, grG2))		
             }
             
    	        gr1 <- GRanges(seqnames = as.character(unlist(x[1])),
@@ -1343,7 +1387,7 @@ importFusionData <- function(format, filename, ...)
          cat("\nchrM is removed from fusion donor\n")
     }
     report <- report[setdiff(seq(1:dim(report)[1]),which(as.character(report$gene2.chr)=="chrM")),]
-    #removing non canonical chrs
+    #removing non canonical chrs1
     chr.g1.l <- sapply(as.character(report$gene1.chr), nchar)
     if(length(which(as.numeric(chr.g1.l) > 5)) >0){
              removed <- as.character(unique(report$gene1.chr[which(as.numeric(chr.g1.l) > 5)]))
@@ -1355,7 +1399,6 @@ importFusionData <- function(format, filename, ...)
              removed <- as.character(unique(report$gene2.chr[which(as.numeric(chr.g2.l) > 5)]))
              cat("\nThe following chrs were removed from fusion donor:\n",removed,"\n")
     }
-    report <- report[which(as.numeric(chr.g2.l) <= 5),]
 	
 	#just a reminder of the star file structure
     #the encompassing chimeric reads are marked with -1 in column junction.type, 
