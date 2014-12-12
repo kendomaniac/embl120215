@@ -21,13 +21,6 @@
 
 .geneLevelAnnotation <- function(genome=c("hg19","mm9","hg38","mm10")){
 	if(genome=="hg19"){
-		TxDb.Mmusculus.UCSC.mm9.knownGene <- NULL
-		TxDb.Mmusculus.UCSC.mm10.knownGene <- NULL
-		TxDb.Hsapiens.UCSC.hg38.knownGene <- NULL
-		Mus.musculus <- NULL
-		Homo.sapiens <- NULL
-		BSgenome.Hsapiens.NCBI.GRCh38 <- NULL
-		
 		txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
 		genes.gr <- genes(txdb)
 		simbols.eg <- select(Homo.sapiens,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")

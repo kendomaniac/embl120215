@@ -271,35 +271,35 @@ extern "C" {
 //It check the read name to discovered error in the pair-end. I.E. pair-end with more then 2 reads.
 int StarParser(int argc, char **argv) {
 
-time_t time_1,time_4;
+//time_t time_1,time_4;
 if (argc<3)
         {
-        std::cerr<<"\n\nUSE: Parser <input_file> <out_file> \n\n";
-	return(-1);
+        //std::cerr<<"\n\nUSE: Parser <input_file> <out_file> \n\n";
+	return(-1);//error input parameters
         //exit(EXIT_FAILURE);
         }
 
-time(&time_1);
+//time(&time_1);
 
 ifstream in(argv[1],ifstream::in);
 if(!in)
         {
-          cout<<"*****Error opening the input file"<<argv[1] <<"*****\n\n";
+         // cout<<"*****Error opening the input file"<<argv[1] <<"*****\n\n";
         //exit(EXIT_FAILURE);
-	  return(-1);
+	  return(-2);//error opening input file
         }
 
 ofstream out(argv[2],ofstream::out);
 if(!out) 
         {
-          cout<<"*****Error opening the  output file *****\n\n"; 
-	  return(-1);
+          //cout<<"*****Error opening the  output file *****\n\n"; 
+	  return(-3);
           //exit(EXIT_FAILURE); 
         }
 
 
 
-cout<<"\n\nSTART EXECUTION..."<<endl;
+//cout<<"\n\nSTART EXECUTION..."<<endl;
 
 char buffer[MAXSIZE];
 unsigned int line=0;
@@ -320,8 +320,8 @@ while (!in.eof()){
       }
       if(buffer[0]!='\0'){
         line++;
-	if (line%1000001==0)
-	  cout<<"Processing line:"<<line<<endl;
+//	if (line%1000001==0)
+//	  cout<<"Processing line:"<<line<<endl;
 	parser.update(delimC,buffer);
 	if (parser.size()==14){
 	  string id_fusion = parser.get(0)+":"+parser.get(1)+":"+ parser.get(2)+":"+ parser.get(3)+":"+ parser.get(4)+":"+ parser.get(5);
@@ -340,7 +340,7 @@ while (!in.eof()){
 	  }
 	}
 	else{
-	  cerr<<"\n\t Line "<<line<<"has a wrong format\n";
+//	  cerr<<"\n\t Line "<<line<<"has a wrong format\n";
 	  line--;
 	}
       }
@@ -355,14 +355,13 @@ for (map <string, pair<int,int> >::iterator it=fusion.begin();it!=fusion.end();+
 
 out.close();
 
-cout<<"correct reads. "<<line<<endl;
-time(&time_4);
-cout<<"\n\nEND PARSING"<<endl;
-cout<<"\nParsed data are saved in: "<<argv[2]<<endl;
-cout<<"\n\nParsed data are now imported in chimera"<<endl;
-cout<<"\n=========================== TIME ===========================\n\n\t";
-cout<<"Total time required: "<<(time_4-time_1)<<"s."<<endl;
-cout<<"\n=========================== TIME ===========================\n\n";
+//cout<<"correct reads. "<<line<<endl;
+//time(&time_4);
+//cout<<"\n\nEND EXECUTION"<<endl;
+//cout<<"\nResults are saved in: "<<argv[2]<<endl;
+//cout<<"\n=========================== TIME ===========================\n\n\t";
+//cout<<"Total time required: "<<(time_4-time_1)<<"s."<<endl;
+//cout<<"\n=========================== TIME ===========================\n\n";
 return EXIT_SUCCESS;
 }
 }
