@@ -323,8 +323,16 @@ while (!in.eof()){
 //	if (line%1000001==0)
 //	  cout<<"Processing line:"<<line<<endl;
 	parser.update(delimC,buffer);
-	if (parser.size()==14){
-	  string id_fusion = parser.get(0)+":"+parser.get(1)+":"+ parser.get(2)+":"+ parser.get(3)+":"+ parser.get(4)+":"+ parser.get(5);
+	if (parser.size()>6){
+	  string gene1chr=parser.get(0);
+	  string gene2chr=parser.get(3);
+
+	  if  ((gene1chr[0]!='C')&&(gene1chr[0]!='c')){
+	    gene1chr="chr"+gene1chr;
+	    gene2chr="chr"+gene2chr;
+	  }
+	      
+	  string id_fusion =  gene1chr+":"+parser.get(1)+":"+ parser.get(2)+":"+ gene2chr+":"+ parser.get(4)+":"+ parser.get(5);
 #if DEBUG
 	  cout<<fusion<<endl;
 #endif
