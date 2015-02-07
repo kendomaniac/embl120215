@@ -1,0 +1,363 @@
+%\VignetteIndexEntry{thu12feb25}
+%\VignetteDepends{}
+%\VignetteKeywords{thu12feb25}
+%\VignettePackage{thu12feb25}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt]{article}
+\usepackage{times}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage[authoryear,round]{natbib}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+\oddsidemargin=0.2in
+\evensidemargin=0.2in
+\headheight=0in
+\headsep=0in
+
+
+\begin{document}
+\title{Making sense of transcriptomics data}
+\author{Raffaele A. Calogero}
+\date{February 12 2015}
+\maketitle
+
+\section{Introduction}
+The ultimate goal of any transcriptomic experiment is to discover functional patterns of biological response to conditions of interest (treatments, environmental influences, mutations etc). The biological interpretation of large gene lists (ranging in size from hundreds to thousands of genes) is still a challenging and daunting task. Over the last few decades, bioinformatics methods, using the biological knowledge accumulated in public databases, e.g. Gene Ontology \cite{ashburner:etal:2000}, made possible to systematically dissect large gene lists in an attempt to assemble a summary of the most enriched and pertinent biology \cite{huang:etal:2009}.
+This practical session will focus on the use of data mining approaches to understand the biology underlying the transcriptomic experiment.
+
+\section{ES to NPC differentiation experiment} 
+The pluripotency and high proliferative capacity of embryonic stem (ES) cells make them an attractive source of different cell types for biomedical research and cell replacement therapies. ES cells have the potential to differentiate into all types of cell lineages including neural precursor cells (NPCs).  NPCs can be expanded in large numbers for significant periods of time to provide a reliable source of cells for transplantation in neurodegenerative disorders and injury of the central nervous system.
+The experiment, we will use in this practical session, is based on mouse cell line 46C. Mouse ES cells were differentiated to neural progenitor cells (NPCs). Experiments were performed in duplicate, and ES cells NPCs were used for sequencing as well as proteomics.
+Each experimental point was done in duplicate. Total RNA was extracted and the polyA+ enriched fraction was sequenced by 50+50 nts PE stranded protocol (Table 1).
+
+\begin{table}[h]
+\caption{\textbf{Summary of the differentiation experiment sequences}}
+\label{my-label}
+\begin{tabular}{ccc}
+\textbf{Sample} & \textbf{Type} & \textbf{fragments (milions)} \\
+2IM1EB2         & ES            & 25.77                        \\
+2iM1EGRNA1      & ES            & 119.52                       \\
+GFB1EB2         & NPC           & 61.01                        \\
+GFP1EGRNA1      & NPC           & 91.64                       
+\end{tabular}
+\end{table}
+
+
+\section{Sequence data preprocessing}
+The first step in a transcriptome sequence experiment is the definition of the level at which the analysis has to be done: 
+
+\begin{enumerate}
+  \item Gene-level
+  \item Transcript-level
+  \item Exon-level
+\end{enumerate}
+
+Functional annotations are prevalently associated to gene-level. Thus, we will mainly focus, in this practical session, on gene-level information. However, to understand the effect of alternative splicing events in a biological framework there are ways of extending to transcript-level the gene-level functional annotations, see section XXXXX.
+An other important decision that has to be made, at the beginning of a transcriptome sequence analysis, is the selection of the annotation to be used. The most used annotations at the present time are:
+
+\begin{enumerate}
+  \item \href{http://www.ncbi.nlm.nih.gov/refseq/}{REFSEQ}
+  \item \href{http://genome.ucsc.edu/}{UCSC}
+  \item \href{http://www.ensembl.org/index.html}{ENSEMBL}
+\end{enumerate}
+
+The main difference between the three annotation is the level of information richness and robustness.
+REFSEQ is a robust and manually curated transcript centric annotation.
+UCSC Bioinformatics Group itself does no generate sequences. UCSC creates the majority of the annotation tracks in-house, the annotations are based on publicly available data contributed by many labs and research groups throughout the world. The annotation is transcript centric.
+ENSEMBL provides a gene/transcript centric annotation. For selected species (eg. human, mouse, pig, rat), gene annotation may also include manual curation, i.e. reviewed determination of transcripts on a case-by-case basis. Furthermore, Ensembl imports annotation from FlyBase, WormBase and SGD. Ensembl transcripts displayed on website are products of the Ensembl automatic gene annotation system (a collection of gene annotation pipelines), termed the Ensembl genebuild. All Ensembl transcripts are based on experimental evidence and thus the automated pipeline relies on the mRNAs and protein sequences deposited into public databases from the scientific community.
+\newline 
+In this specific practical session we will use UCSC annotation. Having decided for gene-level and UCSC annotation now it is necessary to identify the bioinformatic tool that allow the converison of reads in a number of counts for a specific gene. The number of tools that allow such conversion are many and a full description of all of them is out of the pourpose of this section. \cite{Steijger:etal:2013} paper provides a detailed evaluation of computational methods for transcript reconstruction and quantification from RNA-seq data. in their paper were evaluated 25 protocol variants of 14 independent computational methods for exon identification, transcript reconstruction and expression-level quantification from RNA-seq data. 
+In this practical session We will use for counts generation rsem software \cite{LiB:DeweyCN:2011}. We selected such tool because it allow to collapse UCSC transcript information in gene-level information and it provides three types of counts format:
+
+\begin{enumerate}
+  \item expected\_count. This count is generally a non-integer value and is the expectation of the number of alignable and unfiltered fragments that are derived from a isoform or gene given the maximum likelihood estimated abundances. 
+  \item TPM. This measure can be used directly as a value between zero and one or can be multiplied by a milion to obtain a measure in terms of transcripts per million. 
+  \item FPKM or Fragments Per Kilobase of exon per Million reads.  Fragment means fragment of DNA, so the two reads that comprise a paired-end read count as one.  Per kilobase of exon means the counts of fragments are then normalized by dividing by the total length of all exons in the gene. 
+\end{enumerate}
+
+
+Differentially expression tools like edgeR and DESeq require the use of raw counts as input. However, the rsem expected\_counts after rounding, \href{https://groups.google.com/forum/#!topic/rsem-users/H1cswrvvmPs}{on the basis of rsem developers}, can be used as input for edgeR or DESeq. 
+The problem with using raw read counts is that the origin of some reads cannot always be uniquely determined. If two or more distinct transcripts in a particular sample share some common sequence (for example, if they are alternatively spliced mRNAs or mRNAs derived from paralogous genes), then sequence alignment may not be sufficient to discriminate the true origin of reads mapping to these transcripts. One approach to addressing this issue involves discarding these multiple-mapped reads (multireads for short) entirely. Another involves partitioning and distributing portions of a multireads expression value between all of the transcripts to which it maps. So-called rescue methods implement this second approach in a naive fashion. RSEM improves upon this approach, utilizing an Expectation-Maximization (EM) algorithm to estimate maximum likelihood expression levels \href{https://biowize.wordpress.com/2014/03/04/understanding-rsem-raw-read-counts-vs-expected-counts/}{Daniel Standage Blog}. These expected counts can then be provided as a matrix (rows = mRNAs, columns = samples) to programs such as:
+
+\begin{enumerate}
+\item \href{https://www.bioconductor.org/packages/devel/bioc/html/EBSeq.htmlEBSeq}{EBseq} 
+\item \href{http://bioconductor.org/packages/release/bioc/html/DESeq.html}{DESeq} 
+\item \href{http://www.bioconductor.org/packages/release/bioc/html/edgeR.html}{edgeR} 
+\end{enumerate}
+to identify differentially expressed genes.
+
+\subsection{Creating a gene-level count matrix}
+The four files, with the suffix \textit{.genes.results} are present in the folder:
+<<>>==
+paste(find.package(package="thu12feb25"),"/examples/", sep="")
+@
+The structure of each file is the following:
+<<>>==
+dir <- dir(paste(find.package(package="thu12feb25"),"/examples/", sep=""))
+dir <- dir[grep(".genes.results",dir)]
+tmp <- read.table(paste(find.package(package="thu12feb25"),
+"/examples/",dir[1], sep=""), sep="\t", header=T)
+head(tmp)
+@
+where:
+\begin{enumerate}
+  \item \textit{gene\_id} is the number defining the UCSC gene cluster in which multiple transcripts are collapsed.
+  \item \textit{transcript\_id.s.} shows the transcripts collapsed in a gene
+\end{enumerate}
+
+\subsection{Differential gene expression}
+In \href{http://www.bioconductor.org/}{Bioconductor} are available different packages for differential expression analysis, see the \textit{biocViews} \textit{DifferentialExpression}. As highligted above we will use \href{https://www.bioconductor.org/packages/devel/bioc/html/EBSeq.htmlEBSeq}{EBseq} to detect the set of genes changing in expression in the ES to NPC differentiation. As detailed in \cite{Leng:etal:2013}, EBSeq is an empirical Bayesian approach that models a number of features observed in RNA-seq data.
+
+\subsection{Exercise 1}
+In this package there is a function called \textit{annotatingGenes}. Read its man page 
+\begin{Sinput}
+Start R typing in a terminal window R
+#load the package thu12feb25
+library(thu12feb25)
+#read the help for the function annotatingGenes
+?annotatingGenes
+\end{Sinput}
+and create a count matrix encompassing the four experiments using the symbol as gene identifier.
+
+Using the information provided by EBSeq define the set of differentially expressed genes between ES and NPC. Please detect the subset of genes characterized by FDR <= 0.05 and absolute log2FC >= 1.
+
+EBSeq relies on parametric assumptions that should be checked following each analysis. The QQP and DenNHist
+help to assess prior assumptions.
+
+Please answer to the following questions:
+\begin{enumerate}
+  \item How many genes are characterized by FDR <= 0.05 and absolute log2FC >= 1?
+  \item How many iteration are needed to get convergence for Alpha and Beta parameters?
+  \item On the basis of the QQP plot the parametric assumption that Beta prior is appropriate is satisfied?
+  \item On the basis of the DenNHist plot estimated distribution fits well to the data?   
+\end{enumerate}
+
+The script is available in section \textit{Exercises solutions}.
+
+\section{Gene ontology enrichment}
+Gene Ontology enrichment is the most basic functional analysis that can be run on a set of differentially expressed genes.
+Specifically we will use the Bioconductor package \textit{goseq}.
+The requirement of goseq package are quite limited, since it requires a simple named vector, which contains two pieces of information:
+
+\begin{enumerate}
+  \item \textbf{Measured genes}: all genes for which RNA-seq data was gathered for your experiment. Each element of your vector should be named by a unique gene identifier.
+  \item \textbf{Differentially expressed genes}: each element of your vector should be either a 1 or a 0, where 1 indicates that the gene is differentially expressed and 0 that it is not.
+\end{enumerate}
+It is important to note that GO enrichment in RNAseq experiments is different from microarray experiments. Indeed, it is necessary to take in account the length bias present in the dataset under consideration \cite{Young:etal:2010}. Furthermore, to account for the length bias inherent to RNAseq data when performing a GO analysis one cannot simply use the hypergeometric distribution as the null distribution for category membership, which is instead appropriate for data without DE length bias, such as microarray data. GO analysis of RNA-seq data requires the use of random sampling in order to generate a suitable null distribution for GO category membership and calculate each categories significance for over representation amongst differentially expressed genes. However random sampling is computational expensive and it can be approximated using Wallenius distribution,  which is a generalization of the hypergeometric distribution where items are sampled with bias.
+
+\subsection{Exercise 2}
+Using the information on goseq package calculate GO enrichment for the set of differentially expressed genes detected in exercise 1.
+Run also a GO enrichment only for Molecular Function or Biological Process categories and select those GO terms characterized by a BH adjusted p.value lower than 0.5. Save the enriched GO terms as tab delimited files.
+
+Please answer to the following questions:
+\begin{enumerate}
+  \item How many enriched BP GO terms are present?
+  \item How many enriched MF GO terms are present?
+\end{enumerate}
+
+The script is available in section \textit{Exercises solutions}.
+
+\section{Topology-based Pathway Analysis of RNASeq data}
+The Bioconductor package \href{http://www.bioconductor.org/packages/release/bioc/html/ToPASeq.html}{ToPASeq} implements several different methods for topology-based pathway analysis of gene expression data from microarray and RNA-Seq technologies. Networks from the following databases, are made available via \href{http://www.bioconductor.org/packages/release/bioc/html/graphite.html}{graphite} package:
+\begin{enumerate}
+ \item KEGG, \cite{Ogata:etal:1999} 
+ \item \href{www.biocarta.com}{Biocarta} 
+ \item Reactome, \cite{Matthews:etal:2009}
+ \item NCI/Nature Pathway Interaction Database, \cite{Schaefer:etal:2009}
+ \item SPIKE, \cite{Paz:etal:2011} 
+ \item HumanCyc, \cite{Caspi:etal:2010}
+ \item Panther, \cite{Mi:etal:2013} 
+\end{enumerate}
+
+\subsection{TopologyGSA}
+TopologyGSA represents a multivariable method in which the expression of genes is modelled with Gausian Graphical Models with covariance matrix reflecting the pathway topology. It uses the the Iterative Proportional Scaling algorithm to estimate the covariance matrices. The testing procedure is a two-step process. First the equality of covariance matrices is testes via a likelihood ratio test. Then, when the null hypothesis of equality of covariance matrices is not rejected, the differential expression is testes via multivariate analysis of variance. On the other hand, when the convariance matrices are not equal, then Behrens-Fisher method for testing the equality of means in a two sample problem with unequal covariance matrices is employed.
+
+\subsection{DEGraph}
+This multivariable method assumes the same direction in the differential expresion of genes belong-
+ing to a pathway. It performs the regular Hotelling's T2 test in the graph-Fourier space restricted to its first k components, which is more powerful than test in the full graph-Fourier space or in the original space.
+
+\subsection{clipper}
+This multivariable method is similar to the topologyGSA as it uses the same two-step approach. However, the Iterative Proportional Scaling algorithm was subsituted with a shrinkage procedure of James-Stein-type which additionally allows proper estimates also in the situation when number of samples is smaller than the number of genes in a pathway. The tests on a pathway-level are follwed with a search for the most affected path in the graph.
+
+\subsection{SPIA}
+The most well-known topology-based pathway analysis method is SPIA. In there, two evidences of differential expression of a pathway are combined. The first evidence is a regular so called overrepresentation analysis in which the sta- tistical significance of the number of differentially expressed genes belonging to a pathway is assessed. The second evidence re ects the pathway topology and it is called the pertubation factor. The authors assume that a differentially expressed gene at the begining of a pathway topology (e.g. a receptor in a signaling pathway) has a stronger effect on the functionality of a pathway than a differentially expressed gene at the end of a pathway (e.g. a transcription factor in a signaling pathway). The pertubation factors of all genes are calculated from a system of linear equations and then combined within a pathway. The two evidences in a form of p-values are finally combined into a global p-value, which is used to rank the pathways.
+
+\subsection{TAPPA}
+TAPPA was among the first topology-based pathway analysis methods. It was inspired in chemointformatics and their models for predicting the structure of molecules. In TAPPA, the gene expression values are standardized and sigma- transformed within a samples. Then, a pathway is seen a molecule, individual genes as atoms and the energy of a molecule is a score defined for one sample. This score is called Pathway Connectivity Index. The difference of expression is assessed via a common univariable two sample test - Mann-Whitney.
+
+\subsection{TBS}
+TBS is another method that works with gene-level statistics and a list of differentially expresed genes. The pathway topology is incorporated as the number of downstream differentially expressed genes. The gene-level log fold-changes are weigted by this numeber and sumed up into a pathway-level score. A statistical significance is assessed by a permutations of genes.
+
+\subsection{PWEA}
+PathWay Enrichment Analysis (PWEA). This is actually a weigthed form of common Gene Set Enrichment Analysis (GSEA). The weights are called Topological In uence Factor (TIF) and are defined as a geometic mean of ratios of Pearson's correlation coefficient and the distance of two genes in a pathway. The weights of genes outside a pathway are assigned randomly from normal distribution with parameters estimated from the weights of genes in all pathways. A statistical significance of a pathway is assessed via Kolmogorov-Simirnov-like test statistic comparing two cumulative distribution functions with class label permutations.
+
+
+\subsection{Exercise 3}
+Use counts table generated in exercise 1. Make analysis with the above mentioned tools, using only genes characterized by sum greater than 10 expected\_counts and using KEGG database. 
+
+Please answer to the following questions:
+\begin{enumerate}
+  \item Which method provide some results?
+  \item Does any of the results fits to the biology of the ES to NPC differentiation?
+  \item Plot the pathway that show link with the biology of ES to NPC differentiation.
+\end{enumerate}
+
+
+The script is available in section \textit{Exercises solutions}.
+
+
+
+
+
+\section{Exercises solutions}
+\subsection{Exercise 1}
+\begin{Sinput}
+samples.dir <- paste(find.package(package="thu12feb25"),"/examples/", sep="")
+samples <- dir(samples.dir)[grep(".genes.results",dir(samples.dir))]
+counts <- lapply(paste(samples.dir,samples, sep=""), function(x){
+      tmp <- annotatingGenes(filename=x, org="mm9")
+	  counts.tmp <- tmp$expected_count
+})
+counts.df <- t(data.frame(matrix(unlist(counts), nrow=length(samples), byrow=T)))
+
+tmp <- annotatingGenes(filename=paste(samples.dir,samples[1], sep=""), org="mm9")
+dimnames(counts.df) <- list(as.character(tmp$Symbol),gsub(".genes.results","",samples))
+
+
+library(EBSeq)
+#library size
+sizes=MedianNorm(counts.df)
+#experimental groups
+conditions=as.factor(c("ES","ES","NPC","NPC"))
+#
+de <- EBTest(Data=as.matrix(counts.df), Conditions=conditions,
+sizeFactors=sizes, maxround=15, QtrmCut=50)
+#checking for convergence given 50 iterations
+de$Alpha
+de$Beta
+#getting the posterior probability
+pp=GetPPMat(de)
+#detecting the subset of genes with a FDR <= 0.05
+de.found=rownames(pp)[which(pp[,"PPDE"] >= 0.95)]
+#detecting log2FC
+gene.fc <- PostFC(de)
+#extracting the posterior log2FC
+de.found.fc <- gene.fc$PostFC[which(names(gene.fc$PostFC)%in%de.found)]
+#FDR <= 0.05 |log2FC| >= 1
+de.found <- names(de.found.fc)[which(abs(log2(de.found.fc)) >= 1)]
+#checking the parametric assumptions
+par(mfrow=c(1,2))
+QQP(de)
+par(mfrow=c(1,2))
+DenNHist(de)
+\end{Sinput}
+
+Comments on exercise 1: because the number of replicates is very low we cannot expect an optimal parameter estimation as well as detection of differentially expressed genes. This not only apply to EBSeq but also to other methods as highlighted in Sonenson publication \cite{Soneson:Delorenzi:2013}. 
+
+\subsection{Exercise 2}
+\begin{Sinput}
+library(goseq)
+#creating the gene universe
+de.universe <- rep(0, length(as.character(tmp$Symbol)))
+names(de.universe) <- as.character(tmp$Symbol)
+#tagging differentially expressed genes
+de.universe[which(names(de.universe)%in%de.found)] <- 1
+#mm9 genome and symbols id are supported by goseq
+supportedGenomes()[grep("mm9", supportedGenomes()$db),]
+supportedGeneIDs()[grep("Symbol",supportedGeneIDs()$db),]
+
+#null distribution
+pwf <- nullp(de.universe,"mm9","geneSymbol")
+#GO enrichment using Wallenius distribution
+GO.wall <- goseq(pwf,"mm9","geneSymbol")
+#only Molecular Function
+GO.MF <- goseq(pwf,"mm9","geneSymbol",test.cats=c("GO:MF"))
+#only Biological processes
+GO.BP <- goseq(pwf,"mm9","geneSymbol",test.cats=c("GO:BP"))
+#subsetting by significance
+enriched.BP <- GO.BP[which(p.adjust(GO.BP$over_represented_pvalue, 
+method="BH")<.05),]
+write.table(enriched.BP, "enriched.BP.txt")
+enriched.MF <- GO.MF[which(p.adjust(GO.MF$over_represented_pvalue, 
+method="BH")<.05),]
+\end{Sinput}
+
+\subsection{Exercise 3}
+\begin{Sinput}
+library(ToPASeq)
+samples.dir <- paste(find.package(package="thu12feb25"),"/examples/", sep="")
+samples <- dir(samples.dir)[grep(".genes.results",dir(samples.dir))]
+counts <- lapply(paste(samples.dir,samples, sep=""), function(x){
+      tmp <- annotatingGenes(filename=x, org="mm9")
+	  counts.tmp <- tmp$expected_count
+})
+
+counts.df <- t(data.frame(matrix(trunc(unlist(counts)), nrow=length(samples), byrow=T)))
+
+tmp <- annotatingGenes(filename=paste(samples.dir,samples[1], sep=""), org="mm9")
+dimnames(counts.df) <- list(as.character(tmp$Symbol),gsub(".genes.results","",samples))
+group <- c("ES","ES","NPC","NPC")
+counts.df1 <- counts.df[rowSums(counts.df) > 10,]
+counts.df1 <- as.matrix(counts.df1)
+#converting in uppercase gene symbols
+dimnames(counts.df1)[[1]] <- toupper(dimnames(counts.df1)[[1]])
+top <- TopologyGSA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", nperm=10)
+res(top)
+##comments: This method requires more samples than nodes in a pathway. Therefore there is an empty output in the example above
+
+#DEGraph
+deg <- DEGraph(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", norm.method="DESeq2")
+res(deg)
+
+#clipper
+cli <- Clipper(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", test="mean")
+res(cli)
+
+#SPIA
+spi <- SPIA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", logFC.th=1)
+
+#TAPPA
+tap <- TAPPA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol")
+
+#TBS
+tbs <- TBS(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", logFC.th=1, nperm=10)
+
+#PWEA
+pwe <- PWEA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", nperm=10)
+which(res(pwe)$p.adj < 0.05)
+
+#Plotting interesting networks
+plot(cli,1, kegg)
+plot(spi,"Complement and coagulation cascades", kegg[45:50], fontsize=50)
+
+\end{Sinput}
+
+<<tabella, results=latex>>==
+
+library(xtable)
+tp <- read.table(paste(find.package(package="chimera"),"/examples/edgren.stat.detection.txt",sep=""), sep="\t", header=T)
+my.table <- xtable(tp, caption = 'Edgren validated fusions discovered by tools supported by chimera')
+print(my.table)
+@
+
+
+\section{R-Bioconductor information}
+<<>>==
+sessionInfo()
+@
+
+
+\bibliographystyle{plainnat}
+\bibliography{Thu12feb_practical}
+\end{document}
+
+
+
+
+
+

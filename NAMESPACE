@@ -1,0 +1,8 @@
+import(Biobase)
+import(Homo.sapiens)
+import(Mus.musculus)
+import(TxDb.Hsapiens.UCSC.hg19.knownGene)
+import(TxDb.Mmusculus.UCSC.mm9.knownGene)
+import(EBSeq)
+exportPattern("^[[:alpha:]]+")
+
