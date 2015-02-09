@@ -1,7 +1,7 @@
-%\VignetteIndexEntry{thu12feb25}
+%\VignetteIndexEntry{thu12feb05}
 %\VignetteDepends{}
-%\VignetteKeywords{thu12feb25}
-%\VignettePackage{thu12feb25}
+%\VignetteKeywords{thu12feb05}
+%\VignettePackage{thu12feb05}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass[12pt]{article}
@@ -21,7 +21,7 @@
 
 
 \begin{document}
-\title{Making sense of transcriptomics data v.005}
+\title{Making sense of transcriptomics data v.006}
 \author{Raffaele A. Calogero}
 \date{February 12 2015}
 \maketitle
