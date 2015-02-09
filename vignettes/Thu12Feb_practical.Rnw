@@ -21,7 +21,7 @@
 
 
 \begin{document}
-\title{Making sense of transcriptomics data}
+\title{Making sense of transcriptomics data v.004}
 \author{Raffaele A. Calogero}
 \date{February 12 2015}
 \maketitle
@@ -93,14 +93,14 @@ to identify differentially expressed genes.
 
 \subsection{Creating a gene-level count matrix}
 The four files, with the suffix \textit{.genes.results} are present in the folder:
-<<>>==
-paste(find.package(package="thu12feb25"),"/examples/", sep="")
+<<chunk1>>==
+paste(find.package(package="thu12feb05"),"/examples/", sep="")
 @
 The structure of each file is the following:
-<<>>==
-dir <- dir(paste(find.package(package="thu12feb25"),"/examples/", sep=""))
+<<chunk2>>==
+dir <- dir(paste(find.package(package="thu12feb05"),"/examples/", sep=""))
 dir <- dir[grep(".genes.results",dir)]
-tmp <- read.table(paste(find.package(package="thu12feb25"),
+tmp <- read.table(paste(find.package(package="thu12feb05"),
 "/examples/",dir[1], sep=""), sep="\t", header=T)
 head(tmp)
 @
@@ -137,7 +137,63 @@ Please answer to the following questions:
   \item On the basis of the DenNHist plot estimated distribution fits well to the data?   
 \end{enumerate}
 
-The script is available in section \textit{Exercises solutions}.
+The script is available in section \textit{Exercises solutions: exercise 1}.
+
+\section{Annotating differentially expressed genes}
+In Bioconductor are present specific organism-specific annotation packages:
+<<chunk3>>==
+library(Mus.musculus)
+head(keytypes(Mus.musculus))
+head(columns(Mus.musculus))
+@
+\textit{keys} and \textit{columns} allow to extract as a dataframe any of the annotation using the function \textit{select}:
+<<chunk4>>==
+head(keys(Mus.musculus, keytype="ENTREZID", pattern="^2"), n=6)
+ann.df <- select(Mus.musculus, keys=keys(Mus.musculus, keytype="ENTREZID"), 
+columns=c("GENENAME", "SYMBOL"), keytype="ENTREZID")
+head(ann.df)
+@
+
+\subsection{Exercise 2}
+Using the above annotation package and the \textit{select} function annotate the genes detected as DE in exercise 1.
+Plot an histogram of log2FC of DE genes
+\newline 
+Please answer to the following question:
+\begin{enumerate}
+  \item There is any particular characteristic in the identified DEs, when looking at log2FC histogram?
+\end{enumerate}
+
+The script is available in section \textit{Exercises solutions: exercise 2}.
+
+\section{Search for chromosome positional enrichments}
+Since we are investigating the effect of differentiation it would be interesting to see if differential expression is linked to chromatin reorganization.
+How can we address this question?
+We can have a look at the location of DE genes in the chromosomes.
+We generated a function, \textit{plotChrs}, that allows the visualization of the overall number of DE with respect to chromosomes and it also allows the plotting of the position of the DE on chromosomes.
+Check the manual page for it.
+
+\begin{Sinput}
+?plotChrs	
+\end{Sinput}	
+
+The search for feature enrichment is a widely used method to characterize a set of genes. While several tools have been designed for nominal features such as Gene Ontology annotations or KEGG Pathways, very little has been proposed to tackle numerical features such as the chromosomal positions of genes.
+\cite{DePreter:etal:2008} a positional gene enrichment analysis method \href{http://homes.esat.kuleuven.be/~bioiuser/pge/}{PGE} for the identification of chromosomal regions that are significantly enriched in a given set of genes. The strength of our method relies on an original query optimization approach that allows to virtually consider all the possible chromosomal regions for enrichment, and on the multiple testing correction which discriminates truly enriched regions versus those that can occur by chance.
+
+
+\subsection{Exercise 3}
+Please produce the plots available for the set of DE genes we have identified in exercise 1
+
+The script is available in section \textit{Exercises solutions: exercise 3}.
+
+Use the Entrez gene-ids associated to the set of DE genes that we have identified in exercise 1 and run an analysis on \url{http://homes.esat.kuleuven.be/~bioiuser/pge/}
+\newline 
+Please answer to the following questions:
+\begin{enumerate}
+  \item Plotting the number of DE on chr, are they uniformly distributed?
+  \item Plotting the number of DE on chr, are they distributed proportionally to the chromosome size?
+  \item Plotting the genes location on chromosome do you see any locus enriched of DEs?
+  \item PGE identifies gene-enriched loci? 
+\end{enumerate}
 
 \section{Gene ontology enrichment}
 Gene Ontology enrichment is the most basic functional analysis that can be run on a set of differentially expressed genes.
@@ -150,17 +206,26 @@ The requirement of goseq package are quite limited, since it requires a simple n
 \end{enumerate}
 It is important to note that GO enrichment in RNAseq experiments is different from microarray experiments. Indeed, it is necessary to take in account the length bias present in the dataset under consideration \cite{Young:etal:2010}. Furthermore, to account for the length bias inherent to RNAseq data when performing a GO analysis one cannot simply use the hypergeometric distribution as the null distribution for category membership, which is instead appropriate for data without DE length bias, such as microarray data. GO analysis of RNA-seq data requires the use of random sampling in order to generate a suitable null distribution for GO category membership and calculate each categories significance for over representation amongst differentially expressed genes. However random sampling is computational expensive and it can be approximated using Wallenius distribution,  which is a generalization of the hypergeometric distribution where items are sampled with bias.
 
-\subsection{Exercise 2}
-Using the information on goseq package calculate GO enrichment for the set of differentially expressed genes detected in exercise 1.
-Run also a GO enrichment only for Molecular Function or Biological Process categories and select those GO terms characterized by a BH adjusted p.value lower than 0.5. Save the enriched GO terms as tab delimited files.
+\subsection{Exercise 4}
+Following the instuction on the vignette of \textit{goseq}
+\begin{Sinput}
+library(Biobase)
+library(goseq)
+openVignette()	
+\end{Sinput}	
+create a vector called de.universe where the set of DE identified in exercise 1 are indicated by 1 and all the other genes are indicated by 0. The names of the vector elements are the gene symbols.
+Follow the vignette instructions and run the enrichment procedure for BP and MF GO classes.
+Using the function \textit{plotGO} have a look at the GO layer at which the GO enriched term is located.
+Using the function \textit{deInGO} identify the subset of DE associated to the enriched GO terms.
 
+The script is available in section \textit{Exercises solutions: exercise 4}.
+\newline 
 Please answer to the following questions:
 \begin{enumerate}
-  \item How many enriched BP GO terms are present?
-  \item How many enriched MF GO terms are present?
+  \item Which class of GO, BP, CC or MF produces a set of enriched set of GO terms?
+  \item Which is the GO layer at which the enriched GO belongs?
 \end{enumerate}
 
-The script is available in section \textit{Exercises solutions}.
 
 \section{Topology-based Pathway Analysis of RNASeq data}
 The Bioconductor package \href{http://www.bioconductor.org/packages/release/bioc/html/ToPASeq.html}{ToPASeq} implements several different methods for topology-based pathway analysis of gene expression data from microarray and RNA-Seq technologies. Networks from the following databases, are made available via \href{http://www.bioconductor.org/packages/release/bioc/html/graphite.html}{graphite} package:
@@ -174,30 +239,74 @@ The Bioconductor package \href{http://www.bioconductor.org/packages/release/bioc
  \item Panther, \cite{Mi:etal:2013} 
 \end{enumerate}
 
+\subsection{graphite}
+
+
 \subsection{TopologyGSA}
 TopologyGSA represents a multivariable method in which the expression of genes is modelled with Gausian Graphical Models with covariance matrix reflecting the pathway topology. It uses the the Iterative Proportional Scaling algorithm to estimate the covariance matrices. The testing procedure is a two-step process. First the equality of covariance matrices is testes via a likelihood ratio test. Then, when the null hypothesis of equality of covariance matrices is not rejected, the differential expression is testes via multivariate analysis of variance. On the other hand, when the convariance matrices are not equal, then Behrens-Fisher method for testing the equality of means in a two sample problem with unequal covariance matrices is employed.
 
+\subsubsection{Exercise 5.1}
+Using the information provided by the ToPASeq vignette check if some path are detected as enriched, using:
+\begin{enumerate}
+  \item panther db
+  \item deseq2 as normalization
+  \item symbol as id
+\end{enumerate} 
+ 
+Permutations should be kept greater than 100 but is incopatible with this course, please use 10.
+
 \subsection{DEGraph}
-This multivariable method assumes the same direction in the differential expresion of genes belong-
-ing to a pathway. It performs the regular Hotelling's T2 test in the graph-Fourier space restricted to its first k components, which is more powerful than test in the full graph-Fourier space or in the original space.
+This multivariable method assumes the same direction in the differential expresion of genes belonging to a pathway. It performs the regular Hotelling's T2 test in the graph-Fourier space restricted to its first k components, which is more powerful than test in the full graph-Fourier space or in the original space.
+
+\subsubsection{Exercise 5.2}
+Repeat the above analysis using DEGraph.
+If there are paths with an Overall.p smaller than 0.05 plot them using the function \textit{plotPath}.
+In case some path is found enriched, what happen if I change database?
+Are the detected enriched path also present in other databases?
+Whats happen if the search is performed in a different database encompassing the same path found enriched? 
 
 \subsection{clipper}
 This multivariable method is similar to the topologyGSA as it uses the same two-step approach. However, the Iterative Proportional Scaling algorithm was subsituted with a shrinkage procedure of James-Stein-type which additionally allows proper estimates also in the situation when number of samples is smaller than the number of genes in a pathway. The tests on a pathway-level are follwed with a search for the most affected path in the graph.
 
+\subsubsection{Exercise 5.3}
+Repeat the above analysis using DEGraph.
+If there are paths with an Overall.p smaller than 0.05 plot them using the function \textit{plotPath}.
+
+
 \subsection{SPIA}
 The most well-known topology-based pathway analysis method is SPIA. In there, two evidences of differential expression of a pathway are combined. The first evidence is a regular so called overrepresentation analysis in which the sta- tistical significance of the number of differentially expressed genes belonging to a pathway is assessed. The second evidence re ects the pathway topology and it is called the pertubation factor. The authors assume that a differentially expressed gene at the begining of a pathway topology (e.g. a receptor in a signaling pathway) has a stronger effect on the functionality of a pathway than a differentially expressed gene at the end of a pathway (e.g. a transcription factor in a signaling pathway). The pertubation factors of all genes are calculated from a system of linear equations and then combined within a pathway. The two evidences in a form of p-values are finally combined into a global p-value, which is used to rank the pathways.
+
+\subsubsection{Exercise 5.4}
+Repeat the above analysis using DEGraph.
+What happen if you change test statistics?
+If there are paths with an Overall.p smaller than 0.05 plot them using the function \textit{plotPath}.
+
 
 \subsection{TAPPA}
 TAPPA was among the first topology-based pathway analysis methods. It was inspired in chemointformatics and their models for predicting the structure of molecules. In TAPPA, the gene expression values are standardized and sigma- transformed within a samples. Then, a pathway is seen a molecule, individual genes as atoms and the energy of a molecule is a score defined for one sample. This score is called Pathway Connectivity Index. The difference of expression is assessed via a common univariable two sample test - Mann-Whitney.
 
+\subsubsection{Exercise 5.5}
+Repeat the above analysis using DEGraph.
+If there are paths with an Overall.p smaller than 0.05 plot them using the function \textit{plotPath}.
+
+
 \subsection{TBS}
 TBS is another method that works with gene-level statistics and a list of differentially expresed genes. The pathway topology is incorporated as the number of downstream differentially expressed genes. The gene-level log fold-changes are weigted by this numeber and sumed up into a pathway-level score. A statistical significance is assessed by a permutations of genes.
+
+\subsubsection{Exercise 5.6}
+Repeat the above analysis using DEGraph.
+If there are paths with an Overall.p smaller than 0.05 plot them using the function \textit{plotPath}.
+
 
 \subsection{PWEA}
 PathWay Enrichment Analysis (PWEA). This is actually a weigthed form of common Gene Set Enrichment Analysis (GSEA). The weights are called Topological In uence Factor (TIF) and are defined as a geometic mean of ratios of Pearson's correlation coefficient and the distance of two genes in a pathway. The weights of genes outside a pathway are assigned randomly from normal distribution with parameters estimated from the weights of genes in all pathways. A statistical significance of a pathway is assessed via Kolmogorov-Simirnov-like test statistic comparing two cumulative distribution functions with class label permutations.
 
+\subsubsection{Exercise 5.7}
+Repeat the above analysis using DEGraph.
+If there are paths with an Overall.p smaller than 0.05 plot them using the function \textit{plotPath}.
 
-\subsection{Exercise 3}
+
+\subsection{Exercise 5}
 Use counts table generated in exercise 1. Make analysis with the above mentioned tools, using only genes characterized by sum greater than 10 expected\_counts and using KEGG database. 
 
 Please answer to the following questions:
@@ -207,10 +316,7 @@ Please answer to the following questions:
   \item Plot the pathway that show link with the biology of ES to NPC differentiation.
 \end{enumerate}
 
-
-The script is available in section \textit{Exercises solutions}.
-
-
+The script is available in section \textit{Exercises solutions: exercise 5}.
 
 
 
@@ -261,6 +367,49 @@ Comments on exercise 1: because the number of replicates is very low we cannot e
 
 \subsection{Exercise 2}
 \begin{Sinput}
+library(Mus.musculus)
+keytypes(Mus.musculus)
+columns(Mus.musculus)
+#looling at the keys characteristics
+head(keys(Homo.sapiens, keytype="ENTREZID"), n=2)
+#looling at the keys characteristcs sharing a specific pattern
+head(keys(Mus.musculus, keytype="ENTREZID", pattern="^2"), n=6)
+ann.df <- select(Mus.musculus, keys=keys(Mus.musculus, keytype="ENTREZID"), 
+columns=c("GENENAME", "SYMBOL"), keytype="ENTREZID")
+head(ann.df)
+
+#annotating the set of differentially expressed genes
+head(de.found)
+ann.de <- select(Mus.musculus, keys=de.found, columns=c("ENTREZID", 
+"GENENAME"), keytype="SYMBOL")
+head(ann.de)
+#combining with differential expression
+#calculating log2 FC for the subset of genes selected ad DE
+de.fc <- log2(de.found.fc[which(abs(log2(de.found.fc)) >= 1)])
+identical(ann.de$SYMBOL, names(de.fc))
+#if FALSE
+#ann.de <- ann.de[order(ann.de$SYMBOL),]
+#de.fc <- de.fc[order(names(de.fc))]
+#identical(ann.de$SYMBOL, names(de.fc))
+de.selected <- as.data.frame(cbind(de.fc, ann.de))
+write.table(de.selected, "de.selected.txt", sep="\t", row.names=FALSE)
+#looking at FC distribution in DE
+hist(de.selected$de.fc, breaks=50)	
+\end{Sinput}	
+
+\subsection{Exercise 3}
+\begin{Sinput}
+#exercise 3 DE localization
+##plotting genes on chrs
+#plotting DE in chrs in function of chr length
+de.lst <- plotChrs(de.df=de.selected, org="Mus.musculus", genome="mm10", plot="bar???)
+
+#plotting DE locations on chrs
+de.lst <- plotChrs(de.df=de.selected, org="Mus.musculus", genome="mm10", plot="chart")
+\end{Sinput}	
+
+\subsection{Exercise 4}
+\begin{Sinput}
 library(goseq)
 #creating the gene universe
 de.universe <- rep(0, length(as.character(tmp$Symbol)))
@@ -285,11 +434,28 @@ method="BH")<.05),]
 write.table(enriched.BP, "enriched.BP.txt")
 enriched.MF <- GO.MF[which(p.adjust(GO.MF$over_represented_pvalue, 
 method="BH")<.05),]
+
+#plotting GO Term
+plotGO(go.term="GO:0030154", go.class="BP")
+
+#extracting de genes from enriched GO term
+de.celdiff <- deInGO(go.term="GO:0030154", de.universe=de.universe, org="Mus.musculus")
+write.table(de.celdiff, "de.celdiff.txt", sep="\t",row.names=FALSE)
 \end{Sinput}
 
-\subsection{Exercise 3}
+\subsection{Exercise 5}
 \begin{Sinput}
 library(ToPASeq)
+
+#have a look at the paths available
+names(kegg)
+names(biocarta)
+names(nci)
+names(spike)
+names(humancyc)
+names(panther)
+
+#loading counts
 samples.dir <- paste(find.package(package="thu12feb25"),"/examples/", sep="")
 samples <- dir(samples.dir)[grep(".genes.results",dir(samples.dir))]
 counts <- lapply(paste(samples.dir,samples, sep=""), function(x){
@@ -306,44 +472,41 @@ counts.df1 <- counts.df[rowSums(counts.df) > 10,]
 counts.df1 <- as.matrix(counts.df1)
 #converting in uppercase gene symbols
 dimnames(counts.df1)[[1]] <- toupper(dimnames(counts.df1)[[1]])
-top <- TopologyGSA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", nperm=10)
+top <- TopologyGSA(counts.df1, group, panther, type="RNASeq", IDs = "symbol", nperm=10, norm.method="DESeq2")
 res(top)
 ##comments: This method requires more samples than nodes in a pathway. Therefore there is an empty output in the example above
 
 #DEGraph
-deg <- DEGraph(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", norm.method="DESeq2")
-res(deg)
+#DEGraph
+deg <- DEGraph(counts.df1, group, panther, type="RNASeq", IDs = "symbol", norm.method="DESeq2")
+deg$res[1:3,]
+names(which(deg$res[,1] <= 0.05))
+#3 interesting paths
+names(panther)[which(names(panther)%in%names(which(deg$res[,1] <= 0.05)))]
+#Plotting interesting networks
+plotPath(my.path="mRNA splicing", path.db="panther", type="symbol")
 
 #clipper
-cli <- Clipper(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", test="mean")
+cli <- Clipper(counts.df1, group, panther, type="RNASeq", IDs = "symbol", test="mean")
 res(cli)
 
 #SPIA
-spi <- SPIA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", logFC.th=1)
+spi <- SPIA(counts.df1, group, panther, type="RNASeq", IDs = "symbol", logFC.th=1)
+res.spi <- res(spi)
+res.spi[which(res.spi$pFdr <= 0.05),]
+
 
 #TAPPA
-tap <- TAPPA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol")
+tap <- TAPPA(counts.df1, group, panther, type="RNASeq", IDs = "symbol")
 
 #TBS
-tbs <- TBS(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", logFC.th=1, nperm=10)
+tbs <- TBS(counts.df1, group, panther, type="RNASeq", IDs = "symbol", logFC.th=1, nperm=10)
 
 #PWEA
-pwe <- PWEA(counts.df1, group, kegg, type="RNASeq", IDs = "symbol", nperm=10)
+pwe <- PWEA(counts.df1, group, panther, type="RNASeq", IDs = "symbol", nperm=10)
 which(res(pwe)$p.adj < 0.05)
 
-#Plotting interesting networks
-plot(cli,1, kegg)
-plot(spi,"Complement and coagulation cascades", kegg[45:50], fontsize=50)
-
 \end{Sinput}
-
-<<tabella, results=latex>>==
-
-library(xtable)
-tp <- read.table(paste(find.package(package="chimera"),"/examples/edgren.stat.detection.txt",sep=""), sep="\t", header=T)
-my.table <- xtable(tp, caption = 'Edgren validated fusions discovered by tools supported by chimera')
-print(my.table)
-@
 
 
 \section{R-Bioconductor information}

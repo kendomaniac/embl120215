@@ -1,8 +1,6 @@
 #subsidiary function to associate ucsc to EG it uses only a subset of UCSC id, i.e. the first one of the ordered set of transcripts ids associated to a gene.
 .ucsc2eg <- function(org=c("hg19","mm9"), ucsc.ids){
 	if(org=="hg19"){
-	 #   require(TxDb.Hsapiens.UCSC.hg19.knownGene) || stop("\nMissing TxDb.Hsapiens.UCSC.hg19.knownGene library\n")
-	 #   require(Homo.sapiens) || stop("\nMissing Homo.sapiens library\n")	
 	    genes.gr <- genes(TxDb.Hsapiens.UCSC.hg19.knownGene)
 	    simbols.eg <- select(Homo.sapiens,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
 	    if(identical(simbols.eg$GENEID, elementMetadata(genes.gr)$gene_id)){
@@ -14,8 +12,6 @@
 	    #extracting ucsc linked to entrez geneid
 	    tmp.x <- select(Homo.sapiens,keys=elementMetadata(genes.gr)$gene_id,columns="UCSCKG",keytype="GENEID")
 	}else if(org=="mm9"){
-	 #   require(TxDb.Mmusculus.UCSC.mm9.knownGene) || stop("\nMissing TxDb.Mmusculus.UCSC.mm9.knownGene library\n")
-	 #   require(Mus.musculus) || stop("\nMissing Mus.musculus library\n")	
 	    genes.gr <- genes(TxDb.Mmusculus.UCSC.mm9.knownGene)
 		#trs.gr <- transcripts(TxDb.Mmusculus.UCSC.mm9.knownGene)
 	    simbols.eg <- select(Mus.musculus,keys=elementMetadata(genes.gr)$gene_id,columns="SYMBOL",keytype="GENEID")
