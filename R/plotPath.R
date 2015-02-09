@@ -20,7 +20,7 @@ plotPath <- function(my.path, path.db=c("kegg","biocarta","nci","spike","humancy
 	    g <- pathwayGraph(p)
 	    plot(g)
     }else if(path.db=="humancyc"){
-	    p <- umancyc[[which(names(humancyc)==my.path)]]
+	    p <- humancyc[[which(names(humancyc)==my.path)]]
 	    p <- convertIdentifiers(p, type)
 	    g <- pathwayGraph(p)
 	    plot(g)

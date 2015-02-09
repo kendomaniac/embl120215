@@ -1,8 +1,8 @@
-\name{plotChr}
-\alias{plotChr}
+\name{plotChrs}
+\alias{plotChrs}
 \title{A function plot a genes to chromosome association}
 \description{A function to plot genes to chromosome association}
-\usage{plotChr(de.df, org, genome, plot=c("bars","chart"))}
+\usage{plotChrs(de.df, org, genome, plot=c("bars","chart"))}
 \arguments{
   \item{de.df}{A dataframe of differentially expressed genes having columns log2FC, SYMBOLS, ENTREZID, GENE DESCRIPTION}
   \item{org}{Organism database, e.g. Homo.sapiens}
