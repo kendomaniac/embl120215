@@ -1,7 +1,7 @@
 Package: thu12feb05
 Type: Package
 Title: Making sense of transcriptomics data
-Version: 0.0.9
+Version: 0.1.0
 Date: 11 February 2015
 Author: Raffaele Calogero
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>

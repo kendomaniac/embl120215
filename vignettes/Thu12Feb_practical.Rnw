@@ -188,7 +188,6 @@ head(ann.df)
 @
 
 \subsubsection{Exercise 2}
-Part1
 Using the above annotation package and the \textit{select} function annotate the genes detected as DE in exercise 1.
 Plot an histogram of log2FC of DE genes
 \newline 
@@ -498,7 +497,8 @@ hist(de.selected$de.fc, breaks=50)
 
 \subsubsection{Exercise 2.1}
 \begin{Sinput}	
-source("http://bioconductor.org/biocLite.R") biocLite(c("AnnotationFuncs","hom.Mm.inp.db"))
+source("http://bioconductor.org/biocLite.R") 
+biocLite(c("AnnotationFuncs","hom.Mm.inp.db"))
 library(AnnotationFuncs)
 library(hom.Mm.inp.db)
 library(Mus.musculus)
