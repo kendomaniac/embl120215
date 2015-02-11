@@ -188,6 +188,7 @@ head(ann.df)
 @
 
 \subsubsection{Exercise 2}
+Part1
 Using the above annotation package and the \textit{select} function annotate the genes detected as DE in exercise 1.
 Plot an histogram of log2FC of DE genes
 \newline 
@@ -197,6 +198,34 @@ Please answer to the following question:
 \end{enumerate}
 
 The script is available in section \textit{Exercises solutions: exercise 2}.
+
+\subsection{Orthologs annotation conversion}
+The Stockholm Bioinformatics Centre has compiled INPARANOID data packages containing orthologs and paralogs. These data packages can be downloaded from BioConductor and are named 
+hom.Xx.inp.db where Xx is the central species, such as At, Ce, Dm, Dr, Hs, Mm, Rn and Sc.
+For the human package, hom.Hs.inp.db, this means that the ortholog mappings are between Humans and cattle, humans and mice and so on.
+Information how to handle INPARANOID databases is available in the vignette of \textit{AnnotationFuncs} package. 
+
+\subsubsection{Exercise 2.1}
+Starting from the \textit{de.selected} extract the mouse symbols and convert them in human symbols.
+Attach the human gene symbols to de.selected dataframe, de.w.orth, and save the dataframe as tab delimited file.  
+
+\begin{Sinput}
+browseVignettes("AnnotationFuncs")
+\end{Sinput}	
+
+The script is available in section \textit{Exercises solutions: exercise 2.1}
+
+\subsubsection{Exercise 2.2}
+Starting from the \textit{de.w.orth} add the swiss prot id using the \textit{Mus.musculus}. The function that has to be used is \textit{select}.
+Attach the swiss prot ids to de.w.orth dataframe and save the dataframe as tab delimited file.
+
+Please answer to the following questions:
+\begin{enumerate}
+  \item There is any duplicated symbol?
+  \item There is any duplicated Uniprot id?
+\end{enumerate}  
+
+The script is available in section \textit{Exercises solutions: exercise 2.2}
 
 \section{Search for chromosome positional enrichments}
 Since we are investigating the effect of differentiation it would be interesting to see if differential expression is linked to chromatin reorganization.
@@ -388,6 +417,7 @@ Write in two files the subsets of up and dw regulated genes.
 
 The script is available in section \textit{Exercises solutions: exercise 6}.
 
+
 \section{Exercises solutions}
 \subsection{Exercise 1}
 \begin{Sinput}
@@ -465,6 +495,48 @@ write.table(de.selected, "de.selected.txt", sep="\t", row.names=FALSE)
 #looking at FC distribution in DE
 hist(de.selected$de.fc, breaks=50)	
 \end{Sinput}	
+
+\subsubsection{Exercise 2.1}
+\begin{Sinput}	
+source("http://bioconductor.org/biocLite.R") biocLite(c("AnnotationFuncs","hom.Mm.inp.db"))
+library(AnnotationFuncs)
+library(hom.Mm.inp.db)
+library(Mus.musculus)
+library(Homo.sapiens)
+hom.Mm.inp()
+hom.Mm.inpHOMSA
+
+symbols <- as.character(de.selected$SYMBOL)
+
+symbols.hs <- getOrthologs(symbols, hom.Mm.inpHOMSA, 'HOMSA', 
+pre.from=org.Mm.egSYMBOL2EG, pre.to=org.Mm.egENSEMBLPROT, 
+post.from=org.Hs.egENSEMBLPROT2EG, post.to=org.Hs.egSYMBOL)
+
+de.hs <- de.selected[which(symbols%in%names(symbols.hs)),]
+de.hs <- de.hs[order(as.character(de.hs$SYMBOL)),]
+symbols.hs <- symbols.hs[order(names(symbols.hs))]
+identical(names(symbols.hs), as.character(de.hs$SYMBOL))
+de.hs <- cbind(de.hs, as.character(symbols.hs))
+dimnames(de.hs)[[2]][5] <- "Hs.SYMBOL"
+de.mm <- de.selected[setdiff(seq(1, dim(de.selected)[1]),
+which(symbols%in%names(symbols.hs))),]
+de.mm <- cbind(de.mm, rep(NA, dim(de.mm)[1]))
+dimnames(de.mm)[[2]][5] <- "Hs.SYMBOL"
+de.w.orth <- rbind(de.hs, de.mm)
+de.w.orth <- as.data.frame(de.w.orth)
+\end{Sinput}
+
+\subsubsection{Exercise 2.2}
+\begin{Sinput}
+prot.df <- select(Mus.musculus, keys=as.character(de.w.orth$SYMBOL), 
+columns=c("UNIPROT","SYMBOL"), keytype="SYMBOL")
+#duplicated symbols
+sum(duplicated(prot.df[,1]))
+#duplicated proteins
+sum(duplicated(prot.df[,2]))
+
+	
+\end{Sinput}		
 
 \subsection{Exercise 3}
 \begin{Sinput}
@@ -641,6 +713,7 @@ writeLines(gene.updw, "gene_updw.txt")
 #analyse only the genes that were creating networks
 #have a look at the results
 \end{Sinput}
+
 
 \section{R-Bioconductor information}
 <<>>==
