@@ -361,7 +361,7 @@ oncofuseInstallation <- function(){
         setwd(mydir)
         return()
 }
-oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG"), org=c("hg19","hg38"), threads=1, plot=FALSE){
+oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG"), org=c("hg19","hg38"), threads=1, plot=FALSE, type=c("listfSet","coordDf")){
 	oncofuseDirLocation  <- paste(path.package("chimera", quiet = FALSE), "/oncofuse", sep="")
 	of.input <- paste("of",gsub("[' '| :]","-", date()),sep="_")
 	extract.loc <-function(fset, tissue){
@@ -370,14 +370,23 @@ oncofuseRun <- function(listfSet, tissue=c("EPI","HEM","MES","AVG"), org=c("hg19
 		end.g1 <- end(fusionGRL(fset)$gene1)
 		start.g2 <- start(fusionGRL(fset)$gene2)
 		return(list(chr.g1, end.g1, chr.g2, start.g2, tissue))
+		}
+	if(type=="listfSet"){
+	   fset.of <- sapply(listfSet, extract.loc, tissue)
+	   fset.of <- as.data.frame(fset.of)
+	   fset.of <- t(fset.of)
+	   write.table(fset.of, of.input, sep="\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
+    }else{
+    	write.table(listfSet, of.input, sep="\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
     }
-	fset.of <- sapply(listfSet, extract.loc, tissue)
-	fset.of <- as.data.frame(fset.of)
-	fset.of <- t(fset.of)
-	write.table(fset.of, of.input, sep="\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
 	cat("\nStart Oncofuse analysis\n")
-	system(paste("java -Xmx1G -jar ",paste(oncofuseDirLocation,"/Oncofuse.jar ",sep=""), of.input," coord ",tissue," ", sub("of","of.out",of.input)," -a ",org," -p ",threads, sep=""))
-    of.out <-read.table(sub("of","of.out",of.input), sep="\t", header=TRUE, fill=TRUE, na.strings="NaN", quote = "")
+	if(org!="hg19"){
+	   system(paste("java -Xmx1G -jar ",paste(oncofuseDirLocation,"/Oncofuse.jar ",sep=""), " -a ",org," -p ",threads, " ", of.input," coord ",tissue," ", sub("of","of.out",of.input), sep=""))
+       of.out <-read.table(sub("of","of.out",of.input), sep="\t", header=TRUE, fill=TRUE, na.strings="NaN", quote = "")
+    }else{
+ 	   system(paste("java -Xmx1G -jar ",paste(oncofuseDirLocation,"/Oncofuse.jar ",sep=""), of.input," coord ",tissue," ", sub("of","of.out",of.input), sep=""))
+        of.out <-read.table(sub("of","of.out",of.input), sep="\t", header=TRUE, fill=TRUE, na.strings="NaN", quote = "")
+    }
 	cat("\nEnd Oncofuse analysis\n")
 	return(of.out)
 	if(plot){
