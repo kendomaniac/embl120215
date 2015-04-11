@@ -6,7 +6,7 @@ import(TxDb.Mmusculus.UCSC.mm9.knownGene)
 import(EBSeq)
 import(CoCiteStats)
 import(DEGraph)
-import(FGNet)
+
 import(GOexpress)
 import(GSVA)
 import(Gviz)

@@ -1,10 +1,10 @@
 Package: thu12feb05
 Type: Package
 Title: Making sense of transcriptomics data
-Version: 0.1.1
-Date: 14 February 2015
+Version: 0.1.2
+Date: 11 April 2015
 Author: Raffaele Calogero
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
-Depends:  Biobase, TxDb.Mmusculus.UCSC.mm9.knownGene, TxDb.Mmusculus.UCSC.mm10.knownGene, Mus.musculus, TxDb.Hsapiens.UCSC.hg19.knownGene, Homo.sapiens, EBSeq, goseq, DEGraph, ToPASeq, Rgraphviz, FGNet, geecc, GOexpress, GSVA, SeqGSEA, CoCiteStats, Gviz, GOstats, TxDb.Hsapiens.UCSC.hg38.knownGene, annotate
+Depends:  Biobase, TxDb.Mmusculus.UCSC.mm9.knownGene, TxDb.Mmusculus.UCSC.mm10.knownGene, Mus.musculus, TxDb.Hsapiens.UCSC.hg19.knownGene, Homo.sapiens, EBSeq, goseq, DEGraph, ToPASeq, Rgraphviz, geecc, GOexpress, GSVA, SeqGSEA, CoCiteStats, Gviz, GOstats, TxDb.Hsapiens.UCSC.hg38.knownGene, annotate
 Description: EMBL Course Analysis and integration of transcriptome and proteome data. Practical session on making sense of transcriptomics data 
 License: Artistic-2.0
