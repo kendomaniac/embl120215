@@ -1210,7 +1210,7 @@ importFusionData <- function(format, filename, ...)
 
 .buildFusion <- function(type=c("donor.end","acceptor.start"), fusion.grl, tx.id){
     eg.lst <- list("tx_id" = tx.id)
-    eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
+    eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
     #handling the 5' end of the fusion
     if(type=="donor.end"){
 	    donor.intron <- NA

@@ -170,7 +170,7 @@ filterList <- function(x,type=c("spanning.reads","fusion.names", "intronic", "an
   g2 <- chimera.tmp[[1]][2]
   eg2 <- names(chr.sym[which(chr.sym == g2)])	 
   eg.lst <- list(gene_id=eg1)
-  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
+  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id", "tx_name"))
   if(length(eg.trs.n)==0){return(1)}
   #getting only the trs encompassing fusion position
   fusion.trs <- findOverlaps(grl[[1]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
@@ -189,7 +189,7 @@ filterList <- function(x,type=c("spanning.reads","fusion.names", "intronic", "an
   names(tmp.gene1) <- tmp.name
   #
   eg.lst <- list(gene_id=eg2)
-  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
+  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id", "tx_name"))
   if(length(eg.trs.n)==0){return(1)}
   fusion.trs <- findOverlaps(grl[[2]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
   if(is.na(fusion.trs)){return(1)}
@@ -211,7 +211,7 @@ filterList <- function(x,type=c("spanning.reads","fusion.names", "intronic", "an
 #a function to identify the presence of intronic region at a junction point
 .onlyExons <- function(type=c("donor.end","acceptor.start"), fusion.grl, tx.id){
     eg.lst <- list("tx_id" = tx.id)
-    eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
+    eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
     #handling the 5' end of the fusion
     if(type=="donor.end"){
 	    donor.intron <- NA

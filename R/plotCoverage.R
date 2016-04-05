@@ -16,14 +16,14 @@ plotCoverage <- function(fset, plot.type=c("exons","junctions"), junction.spanni
   g2 <- chimera.tmp[[1]][2]
   eg2 <- names(chr.sym[which(chr.sym == g2)])	 
   eg.lst <- list(gene_id=eg1)
-  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
+  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id", "tx_name"))
   fusion.trs <- findOverlaps(grl[[1]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
   eg.trs.n <- eg.trs.n[fusion.trs]
   tmp.tx <- as.character(elementMetadata(eg.trs.n)$tx_id)
   tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
   
   eg.lst <- list("tx_id" = tmp.tx)
-  eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
+  eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
   #handling the 5' end of the fusion
   donor.intron <- NA
   exons.tx <- elementMetadata(eg.trs.e)$tx_id
@@ -60,14 +60,14 @@ plotCoverage <- function(fset, plot.type=c("exons","junctions"), junction.spanni
 
   ##g2
   eg.lst <- list(gene_id=eg2)
-  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id", "tx_name"))
+  eg.trs.n <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id", "tx_name"))
   fusion.trs <- findOverlaps(grl[[2]],  eg.trs.n, type = "any", select = "first", ignore.strand = T)
   eg.trs.n <- eg.trs.n[fusion.trs]
   tmp.tx <- as.character(elementMetadata(eg.trs.n)$tx_id)
   tmp.name <- as.character(elementMetadata(eg.trs.n)$tx_name)
 
   eg.lst <- list("tx_id" = tmp.tx)
-  eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, vals=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
+  eg.trs.e <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene, filter=eg.lst, columns=c("tx_id","exon_id","exon_rank"))
   #handling the 3' end of the fusion
   acceptor.intron <- NA
   exons.tx <- elementMetadata(eg.trs.e)$tx_id
