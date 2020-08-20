@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Package: thu12feb05
 Type: Package
 Title: Making sense of transcriptomics data
@@ -7,4 +8,19 @@ Author: Raffaele Calogero
 Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
 Depends:  Biobase, TxDb.Mmusculus.UCSC.mm9.knownGene, TxDb.Mmusculus.UCSC.mm10.knownGene, Mus.musculus, TxDb.Hsapiens.UCSC.hg19.knownGene, Homo.sapiens, EBSeq, goseq, DEGraph, ToPASeq, Rgraphviz, geecc, GOexpress, GSVA, SeqGSEA, CoCiteStats, Gviz, GOstats, TxDb.Hsapiens.UCSC.hg38.knownGene, annotate
 Description: EMBL Course Analysis and integration of transcriptome and proteome data. Practical session on making sense of transcriptomics data 
+=======
+Package: chimera
+Type: Package
+Title: A package for secondary analysis of fusion products
+Version: 1.19.0
+Date: 31 March 2015
+Author: Raffaele A Calogero, Matteo Carrara, Marco Beccuti, Francesca Cordero 
+Maintainer: Raffaele A Calogero <raffaele.calogero@unito.it>
+Depends:  Biobase, GenomicRanges (>= 1.13.3), Rsamtools (>= 1.13.1), GenomicAlignments, methods, AnnotationDbi, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene, Homo.sapiens
+Suggests: BiocParallel, geneplotter
+Enhances: Rsubread, BSgenome.Mmusculus.UCSC.mm9, TxDb.Mmusculus.UCSC.mm9.knownGene, BSgenome.Mmusculus.UCSC.mm10, TxDb.Mmusculus.UCSC.mm10.knownGene, Mus.musculus, BSgenome.Hsapiens.NCBI.GRCh38, TxDb.Hsapiens.UCSC.hg38.knownGene
+Description: This package facilitates the characterisation of fusion products events. It allows to import fusion data results from the following fusion finders:  chimeraScan, bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap, STAR, Rsubread, fusionCatcher.
+biocViews: Infrastructure
+SystemRequirements: STAR, TopHat, bowtie and samtools are required for some functionalities 
+>>>>>>> upstream/master
 License: Artistic-2.0
